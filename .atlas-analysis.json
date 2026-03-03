@@ -1,0 +1,149 @@
+{
+  "projectType": "frontend",
+  "projectName": "b5",
+  "projectDescription": "A visual programming language for creative coding inspired by p5.js, using blocks, nodes, and wires.",
+  "theme": "willow",
+  "primaryColor": "#ed225d",
+  "lightColor": "#ff4d7d",
+  "darkColor": "#c01d4d",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "first-project"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/blocks-nodes-wires",
+              "concepts/execution-model",
+              "concepts/effect-blocks",
+              "concepts/data-flow"
+            ]
+          },
+          {
+            "group": "Editor Guide",
+            "pages": [
+              "editor/overview",
+              "editor/playground",
+              "editor/factory",
+              "editor/block-search",
+              "editor/viewer",
+              "editor/navigation"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/custom-variables",
+              "advanced/custom-functions",
+              "advanced/save-load",
+              "advanced/b5js-integration"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/bounce-ball",
+              "examples/drawing-shapes",
+              "examples/interactive-graphics",
+              "examples/animations"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Block Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "blocks/overview"
+            ]
+          },
+          {
+            "group": "Canvas & Setup",
+            "pages": [
+              "blocks/canvas-setup"
+            ]
+          },
+          {
+            "group": "Drawing",
+            "pages": [
+              "blocks/shapes",
+              "blocks/colors",
+              "blocks/transformations"
+            ]
+          },
+          {
+            "group": "Data & Math",
+            "pages": [
+              "blocks/numbers",
+              "blocks/operators",
+              "blocks/logic"
+            ]
+          },
+          {
+            "group": "Control & Interaction",
+            "pages": [
+              "blocks/control-flow",
+              "blocks/mouse-keyboard",
+              "blocks/timing"
+            ]
+          },
+          {
+            "group": "Physics",
+            "pages": [
+              "blocks/matter-physics"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Community",
+        "groups": [
+          {
+            "group": "Contributing",
+            "pages": [
+              "community/development-setup",
+              "community/architecture",
+              "community/contributing",
+              "community/code-of-conduct"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Node-based visual programming with blocks, nodes, and wires",
+    "Sequential execution model (left-to-right, top-to-bottom)",
+    "Live coding with 60 FPS canvas rendering",
+    "Custom block creation for variables and functions",
+    "Embedded documentation with hover tooltips",
+    "Block search for quick discovery",
+    "Effect blocks for contextual state management",
+    "Save and load projects as JSON files",
+    "Based on p5.js with q5 renderer for performance",
+    "Matter.js physics engine integration"
+  ],
+  "publicApiSurface": [
+    "Editor component",
+    "Viewer component",
+    "Block system (drawing, math, control, physics)",
+    "Factory system (variables, functions, objects)",
+    "Block search interface",
+    "JSON file format (.b5.json)",
+    "b5.js rendering engine",
+    "Canvas setup and configuration",
+    "Mouse and keyboard interaction blocks",
+    "Color pickers and sliders"
+  ]
+}
