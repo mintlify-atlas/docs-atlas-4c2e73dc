@@ -1,0 +1,118 @@
+---
+title: Introduction to b5
+description: A visual programming language for graphics, creative coding, and fast prototyping
+---
+
+<img className="block" src="https://raw.githubusercontent.com/peilingjiang/b5/main/src/img/logo/logo.svg" alt="b5 Logo" width="200" />
+
+## Build creative coding projects with blocks and wires
+
+b5 is a visual programming language for graphics, fast prototyping, and creative coding. Using blocks and wires instead of lines of code, you can quickly build and share visual projects with an online editor featuring live coding and embedded documentation. Inspired by [p5.js](https://p5js.org/), b5 makes programming more graphical, friendlier, and instantly responsive.
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get started with b5 in under 5 minutes
+  </Card>
+  <Card
+    title="First project"
+    icon="cube"
+    href="/first-project"
+  >
+    Build your first visual program step-by-step
+  </Card>
+  <Card
+    title="Try the editor"
+    icon="arrow-up-right-from-square"
+    href="https://b5editor.app"
+  >
+    Open the live b5 editor and start creating
+  </Card>
+  <Card
+    title="Watch demo"
+    icon="play"
+    href="https://vimeo.com/peiling/b5"
+  >
+    See b5 in action with a video walkthrough
+  </Card>
+</CardGroup>
+
+## What makes b5 unique
+
+### Visual programming that makes sense
+
+Unlike most node-based visual programming languages, b5 uses a grid system where sequence matters. The editor executes blocks **from left to right, and line by line from top to bottom** - just like reading text. This makes your visual code intuitive and predictable.
+
+### Live coding at 60 FPS
+
+The main code canvas in the Playground runs 60 times per second by default, just like the `draw` function in p5.js. You see real-time changes to your canvas without restarting the sketch.
+
+### Embedded documentation
+
+No need to search external docs. Simply hover your cursor over blocks, nodes, or input boxes to see explanations right in the editor.
+
+### Custom blocks with Factory
+
+Instead of only using predefined blocks, you can design your own customized blocks in the Factory section, including:
+
+- **Variables** - Like the `setup` function in p5.js, run once before Playground starts
+- **Functions** - Define reusable logic blocks that execute when placed in Playground
+- **Objects** - Work in progress for more complex data structures
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Effect blocks" icon="wand-magic-sparkles">
+    Blocks like `fill` and `stroke` affect other blocks through their contextual relationships, making the drawing context visible through background grid highlighting
+  </Card>
+  <Card title="Block search" icon="magnifying-glass">
+    Double-click any empty block room to search for blocks by name, type, or description
+  </Card>
+  <Card title="Save and continue" icon="floppy-disk">
+    Save your progress as a JSON file (⌘/ctrl + S) and drag it back into the editor to continue later
+  </Card>
+  <Card title="Example library" icon="star">
+    Load random example files with detailed comments to learn and get inspired
+  </Card>
+</CardGroup>
+
+## How b5 works
+
+<img className="block" src="https://raw.githubusercontent.com/peilingjiang/b5/main/media/components.png" alt="b5 Components" />
+
+Your code is based on three core elements:
+
+- **Blocks** - Represent functionality (like functions or operations)
+- **Nodes** - Handle input and output for each block
+- **Wires** - Connect blocks to create data flow from top to bottom
+
+Data flows from outputs (top of blocks) to inputs (bottom of blocks) via wires. One output can feed data to multiple inputs, while each input can only have one data source.
+
+<Note>
+When an effect block is selected, the background grid cells change color to reflect its effective range - unlike text-based languages where the drawing context remains hidden.
+</Note>
+
+## Ready to start?
+
+The interface is designed to make coding easier, friendlier, and more graphical. Whether you're a beginner, artist, or visual learner, b5 helps you get hands-on with creative programming quickly.
+
+<CardGroup cols={1}>
+  <Card
+    title="Follow the quick start guide"
+    icon="forward"
+    href="/quickstart"
+  >
+    Learn the basics and create your first visual program
+  </Card>
+</CardGroup>
+
+## Research and citation
+
+b5 is research-backed and was published at CHI 2023:
+
+<Tip>
+Peiling Jiang. 2023. Positional Control in Node-Based Programming. In Extended Abstracts of the 2023 CHI Conference on Human Factors in Computing Systems (CHI EA '23), April 23–28, 2023, Hamburg, Germany. ACM, New York, NY, USA, 7 pages. https://doi.org/10.1145/3544549.3585878
+</Tip>

@@ -1,0 +1,282 @@
+---
+title: Timing Blocks
+description: Blocks for controlling frame rate and timing in animations
+---
+
+## Overview
+
+Timing blocks control the speed and performance of your sketch. By default, the Playground runs at 60 frames per second (FPS), redrawing the canvas 60 times each second.
+
+## Frame Rate Control
+
+### frameRate
+
+Gets or sets the target frame rate for the animation.
+
+<ParamField path="fps" type="number">
+  Target frames per second (optional - omit to get current rate)
+</ParamField>
+
+**Output (when getting):**
+- Current frame rate as a number
+
+**Example Usage:**
+
+```
+// Set frame rate
+Line 0: [number: 30] -> target FPS
+Line 1: [frameRate] <- 30
+        // Sketch now runs at 30 FPS (half speed)
+
+// Get frame rate  
+Line 0: [frameRate] -> current FPS
+Line 1: [text] <- display FPS value
+```
+
+### Common Frame Rates
+
+<Info>
+**Frame Rate Guidelines**:
+- **60 FPS** (default): Smooth animation, standard for most sketches
+- **30 FPS**: Half speed, reduces CPU usage, still appears smooth
+- **24 FPS**: Cinematic feel, slightly choppy but artistic
+- **15 FPS**: Slow motion effect, more choppy
+- **1-10 FPS**: Very slow, good for time-lapse effects
+</Info>
+
+### Performance Considerations
+
+```
+// Reduce frame rate for complex sketches:
+Variable: settings
+  [number: 30] -> reduced FPS
+  [frameRate] <- 30
+  // Helps performance when drawing many shapes
+
+Playground:
+  // Your complex drawing code
+  [loop: 100 times]
+    [circle] <- many circles
+```
+
+### frameRateShow
+
+Displays the current frame rate on the canvas as a performance indicator.
+
+**Example Usage:**
+
+From the Physics example:
+
+```json
+{
+  "name": "frameRateShow",
+  "source": "original",
+  "uuid": "fa82881b-6042-4925-a09c-29c44fe2855f"
+}
+```
+
+In context:
+
+```
+Line 4: [matter_box] <- create physics objects
+        [matter_ground] <- ground plane
+        [frameRateShow] <- display FPS counter
+        // Shows "60" when running smoothly
+        // Shows lower numbers if sketch is too complex
+```
+
+The `frameRateShow` block displays the actual achieved frame rate in the top-left corner of the canvas, helping you monitor performance.
+
+<Tip>
+**Use frameRateShow for Debugging**: Add `frameRateShow` to any sketch to see if it's maintaining the target frame rate. If the displayed FPS is significantly lower than your target (e.g., showing 30 when target is 60), your sketch might be too complex and needs optimization.
+</Tip>
+
+## Time-Based Animation
+
+While not separate blocks, you can create time-based animations using frame counters:
+
+### Frame Counter Pattern
+
+```
+Variable: frameCount
+  [number: 0] -> initial frame
+  
+Playground:
+  Line 0: [frameCount] -> current frame
+          [number: 1] -> increment
+  Line 1: [add] <- frameCount, 1 → new frame count
+          // Store back to frameCount (requires custom block)
+  Line 2: // Use frameCount for time-based effects
+          [divide] <- frameCount, 60 → seconds elapsed
+```
+
+### Time-Based Rotation
+
+```
+Variable: angle
+  [number: 0]
+  
+Playground:
+  Line 0: [angle] -> current angle
+          [number: 0.05] -> rotation speed (radians per frame)
+  Line 1: [add] <- angle, 0.05 → new angle
+  Line 2: [translate] <- centerX, centerY
+          [rotate] <- new angle
+  Line 3: [rect] <- rotating square
+```
+
+At 60 FPS:
+- `0.05` radians/frame = 3 radians/second
+- Full rotation (2π) takes ~2.1 seconds
+
+### Time-Based Movement
+
+```
+Line 0: [frameCount] -> frames elapsed
+        [number: 60] -> FPS
+Line 1: [divide] <- frameCount, 60 → seconds
+        [number: 100] -> speed (pixels/second)
+Line 2: [multiply] <- seconds, 100 → distance traveled
+Line 3: [circle] <- distance, y, radius
+        // Moves at consistent 100 pixels/second
+```
+
+## Timing Patterns
+
+### Pattern 1: Set Frame Rate at Start
+
+```
+Variable: setup
+  [number: 30] -> target FPS
+  [frameRate] <- 30
+  // Runs once at initialization
+  
+Playground:
+  // Your sketch runs at 30 FPS
+```
+
+### Pattern 2: Performance Monitor
+
+```
+Playground:
+  Line 0: [frameRateShow] <- display FPS
+  
+  // Complex drawing:
+  Line 1: [loop many times]
+          [shapes]
+          
+  // If FPS drops too low, reduce complexity or frame rate
+```
+
+### Pattern 3: Speed Control
+
+```
+Variable: speed
+  [numberSlider: 60, 1-120, step 1] -> adjustable FPS
+  [frameRate] <- slider value
+  
+Playground:
+  // Animation speed adjustable in real-time
+  // 1 FPS = very slow
+  // 60 FPS = normal speed  
+  // 120 FPS = double speed (if hardware can handle it)
+```
+
+### Pattern 4: Oscillating Animation
+
+```
+Variable: time
+  [number: 0]
+  
+Playground:
+  Line 0: [time] -> current time
+          [number: 0.1] -> speed
+  Line 1: [add] <- time, 0.1 → new time
+  Line 2: [sin] <- new time → oscillating value (-1 to 1)
+          [multiply] <- sin, 100 → amplitude
+  Line 3: [circle] <- centerX + amplitude, centerY, radius
+          // Circle oscillates left-right smoothly
+```
+
+### Pattern 5: Timed Events
+
+```
+Playground:
+  Line 0: [frameCount] -> frames
+          [number: 60] -> interval (1 second at 60 FPS)
+Line 1: [modulo] <- frameCount, 60 → remainder
+        [equals] <- remainder, 0 → trigger every second
+  Line 2: [randomRGB] <- trigger
+          // Randomizes color every second
+```
+
+### Pattern 6: Slow Motion Effect
+
+```
+Variable: slowmo
+  [number: 15] -> slow FPS
+  [frameRate] <- 15
+  
+Playground:
+  // Everything moves at 1/4 normal speed
+  // Creates dramatic slow-motion effect
+```
+
+## Performance Optimization
+
+<Tip>
+**Reduce Frame Rate for Complex Sketches**: If your sketch drops below 60 FPS:
+1. Add `frameRateShow` to see actual performance
+2. Reduce target to 30 FPS: `[frameRate] <- 30`
+3. Simplify drawing (fewer shapes, simpler effects)
+4. Use `stopDraw` to skip unnecessary drawing
+</Tip>
+
+<Tip>
+**Frame Rate vs Speed**: Lowering frame rate makes animation choppier but doesn't necessarily slow it down. For actual slow motion, you need to reduce movement per frame:
+```
+// Choppy but same speed:
+[frameRate] <- 30
+[bounce] <- ..., step: 7  // Still moves 7px per frame
+
+// Smooth and slower:
+[frameRate] <- 60
+[bounce] <- ..., step: 3.5  // Moves half as fast
+```
+</Tip>
+
+<Warning>
+**Hardware Limits**: Setting frameRate to very high values (120+) doesn't guarantee that rate - it depends on:
+- Sketch complexity (number of shapes, calculations)
+- Computer hardware (CPU, GPU)
+- Browser performance
+
+Use `frameRateShow` to see the actual achieved frame rate.
+</Warning>
+
+<Info>
+**60 FPS Standard**: 60 FPS matches most monitor refresh rates (60 Hz), providing the smoothest appearance. Going higher (120 FPS) only helps on high-refresh-rate displays (120 Hz+).
+</Info>
+
+## Timing Tips
+
+<Tip>
+**Frame-Independent Animation**: For animations that should run at the same speed regardless of frame rate, calculate movement based on time:
+```
+[frameRate] -> current FPS
+[divide] <- targetSpeed, currentFPS → speed per frame
+```
+This keeps animations consistent even if frame rate varies.
+</Tip>
+
+<Tip>
+**Debug Performance**: Always use `frameRateShow` when optimizing:
+- Add it at the start of development
+- Monitor FPS while adding complexity  
+- If FPS drops significantly, simplify or optimize
+- Remove it in the final version if desired
+</Tip>
+
+<Info>
+**Playground vs Factory**: Remember that Factory code runs ONCE at initialization, while Playground runs 60 times per second. Set `frameRate` in Factory (Variable section) to configure it once.
+</Info>

@@ -1,0 +1,400 @@
+---
+title: Logic & Comparison Blocks
+description: Blocks for boolean logic, comparisons, and conditional operations
+---
+
+## Overview
+
+Logic blocks handle boolean values (true/false) and conditional operations. They're essential for creating interactive sketches that respond to user input or changing conditions.
+
+## Boolean Values
+
+### true
+
+Outputs a constant `true` boolean value.
+
+**Output:**
+- `true`
+
+### Example Usage
+
+From the Physics example:
+
+```json
+{
+  "name": "true",
+  "source": "original",
+  "output": { "0": [["4", "1", "1"]] }
+}
+```
+
+Used to pass a constant `true` value to a parameter:
+
+```
+Line 1: [true] -> parameter value
+Line 4: [matter_box] <- ... , true (enable some feature)
+```
+
+### false
+
+Outputs a constant `false` boolean value.
+
+**Output:**
+- `false`
+
+## Boolean Parameters
+
+### bool
+
+Defines a boolean input parameter for custom functions.
+
+<ParamField path="input" type="boolean">
+  Boolean value passed into the function
+</ParamField>
+
+**Output:**
+- The boolean value passed to the function
+
+### Example Usage
+
+From the Line Drawing example's `randomRGB` function:
+
+```json
+{
+  "name": "bool",
+  "source": "original",
+  "input": { "0": null },  // Receives value from function caller
+  "output": {
+    "0": [
+      ["2", "0", "0"],  // Used by three random blocks
+      ["2", "1", "0"],
+      ["2", "2", "0"]
+    ]
+  }
+}
+```
+
+In context:
+
+```
+Function: randomRGB (input: trigger boolean)
+  Line 0: [bool: trigger] -> outputs to random blocks
+  Line 2: [random] <- trigger (when true, generate new value)
+          [random] <- trigger
+          [random] <- trigger
+
+Playground:
+  Line 0: [mouseIsPressed] -> true/false
+  Line 1: [randomRGB] <- mouseIsPressed as trigger
+```
+
+The `bool` block receives the boolean input and distributes it to multiple blocks.
+
+## Logical Operators
+
+### AND
+
+Logical AND operation - outputs `true` only if both inputs are `true`.
+
+<ParamField path="a" type="boolean" required>
+  First boolean value
+</ParamField>
+
+<ParamField path="b" type="boolean" required>
+  Second boolean value
+</ParamField>
+
+**Output:**
+- `true` if both a AND b are true
+- `false` otherwise
+
+**Truth Table:**
+```
+a: false, b: false → false
+a: false, b: true  → false  
+a: true,  b: false → false
+a: true,  b: true  → true
+```
+
+### Example Usage
+
+```
+Line 0: [mouseIsPressed] -> mouse down?
+        [keyIsPressed] -> key down?
+Line 1: [AND] <- mouseIsPressed, keyIsPressed
+        // Only true if BOTH mouse AND key are pressed
+Line 2: [stopDraw] <- if not both, stop
+        [circle] <- only draws when both pressed
+```
+
+### OR
+
+Logical OR operation - outputs `true` if at least one input is `true`.
+
+<ParamField path="a" type="boolean" required>
+  First boolean value
+</ParamField>
+
+<ParamField path="b" type="boolean" required>
+  Second boolean value
+</ParamField>
+
+**Output:**
+- `true` if a OR b (or both) are true
+- `false` if both are false
+
+**Truth Table:**
+```
+a: false, b: false → false
+a: false, b: true  → true
+a: true,  b: false → true  
+a: true,  b: true  → true
+```
+
+### Example Usage
+
+```
+Line 0: [mouseIsPressed] -> mouse down?
+        [keyIsPressed] -> key down?
+Line 1: [OR] <- mouseIsPressed, keyIsPressed  
+        // True if EITHER mouse OR key is pressed
+Line 2: [toggle] <- condition
+        // Triggers if either input method is used
+```
+
+## Comparison Operators
+
+Comparison blocks compare two values and output a boolean result.
+
+### equals (==)
+
+Tests if two values are equal.
+
+<ParamField path="a" type="number" required>
+  First value
+</ParamField>
+
+<ParamField path="b" type="number" required>
+  Second value
+</ParamField>
+
+**Output:**
+- `true` if a equals b
+- `false` otherwise
+
+### greaterThan (&gt;)
+
+Tests if first value is greater than second.
+
+<ParamField path="a" type="number" required>
+  First value
+</ParamField>
+
+<ParamField path="b" type="number" required>
+  Second value
+</ParamField>
+
+**Output:**
+- `true` if a > b
+- `false` otherwise
+
+### lessThan (&lt;)
+
+Tests if first value is less than second.
+
+<ParamField path="a" type="number" required>
+  First value
+</ParamField>
+
+<ParamField path="b" type="number" required>
+  Second value
+</ParamField>
+
+**Output:**
+- `true` if a < b
+- `false` otherwise
+
+### Example Usage
+
+```
+Line 0: [mouse] -> mouseX, mouseY
+        [canvasSize] -> width, height
+        [divide: 2] -> width/2
+Line 1: [greaterThan] <- mouseX, width/2
+        // True if mouse is on right half of canvas
+Line 2: [fillPicker: red] if left
+        [fillPicker: blue] if right (based on condition)
+```
+
+## Control Flow
+
+### toggle
+
+Toggles or switches between states based on a condition.
+
+<ParamField path="condition" type="boolean" required>
+  When true, toggles state
+</ParamField>
+
+**Output:**
+- Boolean value that toggles when condition is true
+
+### Example Usage
+
+From the Line Drawing example:
+
+```json
+{
+  "name": "toggle",
+  "source": "original",
+  "input": { "0": ["1", "2", "0"] },  // mouseIsPressed
+  "output": { "0": [["3", "2", "0"]] }  // to stopDraw
+}
+```
+
+In context:
+
+```
+Line 1: [mouseIsPressed] -> true when mouse down
+Line 2: [toggle] <- mouseIsPressed -> flips state
+Line 3: [stopDraw] <- toggle result
+```
+
+The `toggle` block changes state each time the condition becomes true, creating an on/off switch behavior.
+
+### stopDraw
+
+Stops execution of subsequent blocks when condition is true.
+
+<ParamField path="condition" type="boolean" required>
+  When true, stops drawing blocks after this point
+</ParamField>
+
+### Example Usage
+
+From the Line Drawing example:
+
+```json
+{
+  "name": "stopDraw",
+  "source": "original",
+  "input": { "0": ["2", "2", "0"] }  // toggle output
+}
+```
+
+In context:
+
+```
+Line 2: [toggle] <- mouseIsPressed -> state
+Line 3: [strokeRGBA] <- colors to use
+        [stopDraw] <- toggle state
+Line 4: [lineXY] <- only draws if stopDraw didn't trigger
+        [lineXY]
+```
+
+When `stopDraw` receives `true`, it prevents blocks on the same line (after it) and subsequent lines from executing. This creates conditional drawing:
+
+- If mouse is pressed: `stopDraw` gets `false`, lines are drawn
+- If mouse is released: `stopDraw` gets `true`, lines are NOT drawn
+
+## Common Logic Patterns
+
+### Pattern 1: Simple Conditional Drawing
+
+```
+Line 0: [mouseIsPressed] -> condition
+Line 1: [stopDraw] <- if NOT pressed, stop
+        [circle] <- only draws when pressed
+```
+
+### Pattern 2: Toggle State
+
+```
+Line 0: [mouseClicked] -> true on click
+Line 1: [toggle] <- click -> flips on each click
+Line 2: // Use toggle output to switch between modes
+```
+
+### Pattern 3: Multiple Conditions (AND)
+
+```
+Line 0: [mouseIsPressed] -> mouse down
+        [greaterThan] <- mouseX, width/2 -> mouse on right
+Line 1: [AND] <- mouseIsPressed, mouseOnRight
+        // Only true if mouse pressed AND on right side
+Line 2: [stopDraw] <- condition
+        [circle] <- only draws on right when pressed
+```
+
+### Pattern 4: Multiple Conditions (OR)
+
+```
+Line 0: [mouseIsPressed] -> input method 1
+        [keyIsPressed] -> input method 2  
+Line 1: [OR] <- either input active
+Line 2: [randomRGB] <- trigger on any input
+```
+
+### Pattern 5: Boundary Check
+
+```
+Line 0: [mouse] -> x, y
+        [canvasSize] -> width, height
+Line 1: [lessThan] <- x, width -> x in bounds
+        [lessThan] <- y, height -> y in bounds
+Line 2: [AND] <- both in bounds
+        [stopDraw] <- if out of bounds, stop
+Line 3: [circle] <- only draws when in bounds
+```
+
+### Pattern 6: Conditional Colors
+
+```
+Function: conditionalColor (input: condition)
+  [bool: condition]
+  // If true path:
+  [fillPicker: red] 
+  // If false path:
+  [fillPicker: blue]
+  
+Playground:
+  [mouseIsPressed] -> condition
+  [conditionalColor] <- condition
+  [circle] <- colored based on condition
+```
+
+## Tips for Logic Blocks
+
+<Tip>
+**stopDraw Position Matters**: `stopDraw` halts execution, so:
+- Blocks BEFORE `stopDraw` always execute
+- Blocks AFTER `stopDraw` (same line or below) only execute if condition is `false`
+</Tip>
+
+<Tip>
+**Combine Conditions**: Use `AND`/`OR` to create complex conditions:
+- `AND`: "both must be true" (mouse pressed AND on right side)
+- `OR`: "at least one must be true" (mouse pressed OR key pressed)
+</Tip>
+
+<Tip>
+**Toggle for State**: Use `toggle` to create on/off switches:
+```
+[mouseClicked] -> trigger
+[toggle] <- trigger -> state flips each click
+```
+</Tip>
+
+<Warning>
+**Boolean vs Number**: Don't confuse boolean and number blocks:
+- Boolean: `true`, `false`, `mouseIsPressed`, `AND`, `OR`
+- Number: `0`, `1`, numeric values
+- Some functions expect one or the other specifically
+</Warning>
+
+<Info>
+**Trigger vs State**: 
+- **Trigger**: Momentary true value (like `mouseClicked` - true for one frame)
+- **State**: Continuous true/false (like `mouseIsPressed` - true while held)
+- Use triggers with `toggle` to create state switches
+</Info>

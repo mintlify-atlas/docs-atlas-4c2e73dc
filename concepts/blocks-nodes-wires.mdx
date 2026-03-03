@@ -1,0 +1,182 @@
+---
+title: Blocks, Nodes, and Wires
+description: Understanding the fundamental building blocks of b5's visual programming syntax
+---
+
+In b5, code is composed of three fundamental elements: **blocks**, **nodes**, and **wires**. These replace traditional lines of text with a visual, interactive programming experience.
+
+## Blocks
+
+Blocks are the primary functional units in b5 - they represent operations, values, and effects. Each block performs a specific task, from storing numbers to drawing shapes.
+
+<img
+  src="/images/concepts/components.png"
+  alt="b5 components: blocks, nodes, and wires"
+/>
+
+### Block Types
+
+b5 supports several different kinds of blocks, each with unique behavior:
+
+<AccordionGroup>
+  <Accordion title="Normal Blocks">
+    Standard functional blocks with input and output nodes. Examples include mathematical operations (`add`, `subtract`), drawing functions (`circle`, `rectangle`), and utility functions.
+    
+    These blocks can have:
+    - 0 or more input nodes (top)
+    - 0 or more output nodes (bottom)
+    - A descriptive name in the center
+  </Accordion>
+
+  <Accordion title="Input Blocks">
+    Blocks that allow direct user input of values. Common types include:
+    - `number` - Direct number input
+    - `str` - String/text input
+    
+    Input blocks have no input nodes and provide output values based on what you type.
+  </Accordion>
+
+  <Accordion title="Slider Blocks">
+    Interactive blocks with visual controls:
+    - `numberSlider` - Drag to select a number within a range
+    - `fractionSlider` - Similar to number slider with fraction display
+    
+    Sliders can optionally take input connections to set min/max/step values dynamically.
+  </Accordion>
+
+  <Accordion title="Color Picker Blocks">
+    Visual color selection blocks:
+    - `fillPicker` - Set fill color
+    - `strokePicker` - Set stroke color
+    
+    Click the colored square to open a color picker interface.
+  </Accordion>
+
+  <Accordion title="Inline Blocks">
+    Compact blocks that display their operation inline (like `+`, `-`, `*`, `/`). These blocks:
+    - Have at most 2 inputs and 1 output
+    - Show the operation symbol directly
+    - Take up minimal space
+  </Accordion>
+
+  <Accordion title="Comment Blocks">
+    Special blocks for documentation that don't execute any code. Use them to:
+    - Explain what your code does
+    - Add notes for yourself or others
+    - Structure your visual code with headings
+  </Accordion>
+</AccordionGroup>
+
+## Nodes
+
+Nodes are the connection points on blocks where data flows in and out. They come in two types:
+
+### Input Nodes
+
+<Note>
+  Input nodes appear at the **top** of blocks and receive data from other blocks' output nodes.
+</Note>
+
+Input nodes:
+- Accept incoming data via wires
+- Can only connect to **one** output node at a time
+- Show a label describing what input they expect
+- Display type information through color when connected
+
+### Output Nodes
+
+<Note>
+  Output nodes appear at the **bottom** of blocks and send data to other blocks' input nodes.
+</Note>
+
+Output nodes:
+- Send data to other blocks
+- Can connect to **multiple** input nodes simultaneously
+- Show a label describing what data they output
+- Provide type information for connected wires
+
+### Node Positioning
+
+The number of nodes determines a block's visual width. The rendering system automatically adjusts block size based on `Math.max(inputNodesCount, outputNodesCount)` to accommodate all nodes properly.
+
+## Wires
+
+Wires are the visual connections between nodes that represent data flow. They connect output nodes to input nodes, creating the data flow graph.
+
+<Warning>
+  Data always flows **from top to bottom** through wires - from output nodes (bottom of blocks) to input nodes (top of blocks).
+</Warning>
+
+### Creating Wires
+
+To create a wire connection:
+
+1. **Click and hold** on any node (input or output)
+2. **Drag** your cursor to the target node
+3. **Release** on the destination node
+
+### Wire Rules
+
+Wires must follow these connection rules:
+
+- Cannot connect a node to itself
+- Cannot connect two input nodes or two output nodes
+- Cannot connect to a block on the same line or above (inputs)
+- Cannot connect to a block on the same line or below (outputs)
+- Input nodes can only have **one** incoming wire
+- Output nodes can have **multiple** outgoing wires
+
+<Tip>
+  When dragging from a node, b5 renders a temporary wire to show you where the connection will go. The wire disappears if you release without connecting to a valid target.
+</Tip>
+
+### Deleting Wires
+
+1. **Click** on a wire to select it (it will be highlighted)
+2. Press **Backspace** to delete the connection
+
+### Wire Type Display
+
+Wires visually indicate the data type flowing through them using colors. The wire's appearance changes based on the output node's type, helping you track data types at a glance.
+
+## Block Search
+
+To add blocks to your canvas:
+
+<Steps>
+  <Step title="Open Block Search">
+    **Double-click** on any empty grid cell where you want to add a block.
+  </Step>
+  
+  <Step title="Search for Blocks">
+    Type to search by:
+    - Block name (e.g., "circle")
+    - Block type (e.g., "math")
+    - Block description
+  </Step>
+  
+  <Step title="Select and Place">
+    Click on a block from the search results or press **Enter** to place it.
+  </Step>
+</Steps>
+
+## Embedded Documentation
+
+<Info>
+  Every block, node, and input box has embedded documentation. Simply **hover** your cursor over any element to see:
+  - What the block does
+  - What each node expects or outputs
+  - Valid input ranges and types
+</Info>
+
+This embedded documentation system ensures you never need to leave the editor to understand how blocks work.
+
+## Visual Syntax Summary
+
+```
+Blocks = Functionality (operations, values, effects)
+Nodes = Connection points (inputs on top, outputs on bottom)  
+Wires = Data flow (from output nodes to input nodes)
+```
+
+This visual syntax replaces traditional text-based programming with an intuitive, graphical approach that makes the flow of data and execution order immediately visible.

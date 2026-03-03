@@ -1,0 +1,187 @@
+---
+title: Canvas Setup Blocks
+description: Blocks for initializing and configuring the drawing canvas
+---
+
+## Overview
+
+Canvas setup blocks are used to initialize and configure your drawing surface. These blocks are typically used once in the **Variable** section of the Factory, similar to the `setup()` function in p5.js.
+
+## createCanvas
+
+Initializes a new drawing canvas with specified dimensions.
+
+<ParamField path="width" type="number" required>
+  The width of the canvas in pixels
+</ParamField>
+
+<ParamField path="height" type="number" required>
+  The height of the canvas in pixels
+</ParamField>
+
+<ParamField path="renderer" type="string">
+  The renderer to use (optional)
+</ParamField>
+
+**Output:**
+- Canvas object reference
+
+**Filter:** `setup`, `unique` - Can only be used in the Variable section and only one instance is allowed per project.
+
+### Example Usage
+
+```json
+{
+  "name": "createCanvas",
+  "source": "original",
+  "input": {
+    "0": ["0", "0", "0"],  // width: 500
+    "1": ["0", "1", "0"],  // height: 300
+    "2": null
+  },
+  "output": { "0": [] }
+}
+```
+
+In the examples, `createCanvas` is typically set up in the Factory's Variable section with number or slider inputs:
+
+```
+Variable: cnv
+  Line 0: [number: 500] -> [numberSlider: 300, 0-600]
+  Line 1: [createCanvas] <-- connects to the numbers above
+```
+
+This creates a 500×300 canvas where the height can be adjusted with a slider from 0 to 600.
+
+## canvasSize
+
+Returns the current dimensions of the canvas. This is a read-only block that provides width and height values.
+
+**Outputs:**
+- `0`: Width of the canvas (number)
+- `1`: Height of the canvas (number)
+
+### Example Usage
+
+```json
+{
+  "name": "canvasSize",
+  "source": "original",
+  "output": { 
+    "0": [["2", "2", "0"]], 
+    "1": [["2", "3", "0"]] 
+  }
+}
+```
+
+From the Bounce Ball example, `canvasSize` is used to calculate boundaries:
+
+```
+Function: boundaries
+  Input: radius (num)
+  
+  Line 0: 
+    [number: 0] -> [add]
+    [num: radius] -> [add], [subtract], [subtract]
+    [canvasSize] -> width, height outputs
+  
+  Line 2:
+    [add] <-- outputs lower bound (0 + radius)
+    [subtract] <-- width - radius (upper width bound)
+    [subtract] <-- height - radius (upper height bound)
+```
+
+This pattern is common for constraining movement within canvas boundaries.
+
+## Canvas Background
+
+While not strictly a "setup" block, background management is closely related:
+
+### background
+
+Sets the background color of the canvas using RGBA values.
+
+<ParamField path="r" type="number" required>
+  Red value (0-255)
+</ParamField>
+
+<ParamField path="g" type="number" required>
+  Green value (0-255)
+</ParamField>
+
+<ParamField path="b" type="number" required>
+  Blue value (0-255)
+</ParamField>
+
+<ParamField path="a" type="number">
+  Alpha/opacity value (0-255)
+</ParamField>
+
+From the Line Drawing example's `blackBG` function:
+
+```
+Function: blackBG
+  Line 0: [number: 0] -> used for R, G, B
+          [number: 20] -> used for alpha
+  Line 1: [background] <- (0, 0, 0, 20)
+```
+
+This creates a semi-transparent black background with 20/255 opacity, creating a trail effect.
+
+### backgroundPicker
+
+A color picker specifically for setting the background color visually.
+
+<ParamField path="color" type="hex color">
+  Hex color value with alpha (e.g., "#9b9b9bff")
+</ParamField>
+
+```json
+{
+  "name": "backgroundPicker",
+  "source": "original",
+  "inlineData": ["#9b9b9bff"]
+}
+```
+
+## Best Practices
+
+<Tip>
+**Canvas Initialization**: Always create your canvas in the Factory's Variable section, not in the Playground. This ensures it's created once at startup, like p5.js's `setup()` function.
+</Tip>
+
+<Tip>
+**Responsive Sizing**: Use sliders to make canvas size adjustable during development. This helps you find the right dimensions for your sketch.
+</Tip>
+
+<Tip>
+**Boundary Calculations**: When working with moving objects, use `canvasSize` to calculate boundaries dynamically. This makes your code work regardless of canvas dimensions.
+</Tip>
+
+## Common Patterns
+
+### Pattern 1: Basic Canvas Setup
+
+```
+Variable: cnv
+  [number: 500] -> [createCanvas width]
+  [number: 500] -> [createCanvas height]
+```
+
+### Pattern 2: Adjustable Canvas
+
+```
+Variable: cnv
+  [numberSlider: 300, 0-600] -> [createCanvas width]
+  [numberSlider: 300, 0-600] -> [createCanvas height]
+```
+
+### Pattern 3: Canvas Dimensions Helper
+
+```
+Variable: canvasCorners
+  [number: 0] -> outputs 0 for corner positions
+  [canvasSize] -> outputs width and height
+```
+
+This pattern appears in the Line Drawing example to get corner positions (0, 0) and (width, height).

@@ -1,0 +1,408 @@
+---
+title: Navigation Controls
+description: Master mouse and keyboard controls for efficient coding
+---
+
+Navigating the b5 editor efficiently is key to a smooth coding experience. This guide covers all mouse, keyboard, and scroll controls for moving around the code canvas, managing blocks, and controlling the interface.
+
+## Mouse Controls
+
+Mouse interactions vary depending on what you're clicking on:
+
+### Canvas Panning
+
+**Click and hold** on any empty block room, then drag to pan around the code canvas.
+
+<Steps>
+  <Step title="Find Empty Space">
+    Click on an empty block room (not on a block, wire, or node).
+  </Step>
+  
+  <Step title="Drag to Pan">
+    Hold the mouse button and drag. The cursor changes to a grabbing hand.
+  </Step>
+  
+  <Step title="Release">
+    Release the mouse button to stop panning. The canvas position is saved automatically.
+  </Step>
+</Steps>
+
+<Tip>
+  The canvas position is constrained to keep at least half the canvas visible at all times.
+</Tip>
+
+### Block Interaction
+
+**Left click** on blocks, nodes, and wires to interact with them:
+
+<Tabs>
+  <Tab title="Select Block">
+    Click a block to select it. Selected blocks show:
+    - Highlighted appearance
+    - Effect range visualization (for effect blocks)
+    - Available connection points
+  </Tab>
+  
+  <Tab title="Drag Block">
+    Click and hold a block, then drag to relocate it to another empty block room.
+    
+    The block can only be moved to empty positions.
+  </Tab>
+  
+  <Tab title="Add Wire">
+    Click an output node, then click an input node to create a wire connection.
+    
+    Data flows from outputs (top) to inputs (bottom).
+  </Tab>
+  
+  <Tab title="Remove Wire">
+    Click on an existing wire connection to remove it.
+    
+    Input nodes can only have one connection at a time.
+  </Tab>
+</Tabs>
+
+### Double Click
+
+**Double-click** on an empty block room to open block search:
+
+- Search interface appears immediately
+- Input field is automatically focused
+- Search at the exact position you clicked
+
+See [Block Search](/editor/block-search) for complete details.
+
+### Right Click
+
+**Right-click** is currently prevented on the code canvas to avoid context menu interference.
+
+<Note>
+  Right-click functionality may be added in future versions for additional controls.
+</Note>
+
+## Zoom Controls
+
+The code canvas supports smooth zooming from 0.5x to 2x magnification:
+
+### Scroll to Zoom
+
+**Scroll** on the code canvas to zoom in and out:
+
+<Tabs>
+  <Tab title="Zoom In">
+    **Scroll up** (or pinch out on trackpad)
+    
+    - Increases magnification
+    - Maximum: 2x (200%)
+    - Smooth interpolation
+    - Center point stays fixed
+  </Tab>
+  
+  <Tab title="Zoom Out">
+    **Scroll down** (or pinch in on trackpad)
+    
+    - Decreases magnification
+    - Minimum: 0.5x (50%)
+    - Smooth interpolation
+    - Gives overview of larger canvases
+  </Tab>
+</Tabs>
+
+<CodeGroup>
+```js Zoom Configuration
+{
+  zoomFactor: 0.0006,     // Scroll sensitivity
+  minZoom: 0.5,           // 50% minimum
+  maxZoom: 2.0,           // 200% maximum
+  throttle: 50            // ms delay to reduce re-renders
+}
+```
+</CodeGroup>
+
+### Zoom Behavior
+
+The zoom system includes several optimizations:
+
+- **Throttling**: Zoom updates are throttled to 50ms to prevent excessive re-rendering
+- **Rounding**: Zoom levels are rounded to 2 decimal places for consistency
+- **Constraints**: Zoom is automatically clamped to the 0.5x - 2x range
+- **Transform**: Uses CSS `scale()` for smooth, GPU-accelerated zooming
+
+<Tip>
+  The canvas width and height are automatically adjusted based on zoom level to maintain the correct interactive area.
+</Tip>
+
+## Scroll Controls
+
+Hold modifier keys while scrolling to navigate instead of zoom:
+
+### Horizontal Scrolling
+
+**Shift + Scroll** to scroll left and right:
+
+- Move horizontally across wide code canvases
+- Useful for navigating blocks that extend beyond the visible area
+- Combines with panning for precise positioning
+
+### Vertical Scrolling
+
+**Cmd/Ctrl + Scroll** to scroll up and down:
+
+- Move vertically through tall code canvases
+- Navigate between different lines of blocks
+- Alternative to panning for vertical movement
+
+<Note>
+  These modifier + scroll combinations override the default zoom behavior.
+</Note>
+
+## Keyboard Shortcuts
+
+The editor supports several keyboard shortcuts:
+
+### Global Shortcuts
+
+<Tabs>
+  <Tab title="Save Project">
+    **Cmd/Ctrl + S**
+    
+    Saves your current project as a `.b5.json` file:
+    - Includes all blocks and connections
+    - Saves canvas positions and zoom levels
+    - Preserves Factory definitions
+    - Downloads to your default folder
+  </Tab>
+  
+  <Tab title="Escape">
+    **Escape**
+    
+    Context-aware cancel action:
+    - Closes block search if open
+    - Cancels current operation
+    - Returns to default state
+  </Tab>
+  
+  <Tab title="Arrow Keys">
+    **Left / Right Arrows**
+    
+    When block search is open:
+    - Navigate between search results
+    - Left arrow: previous result
+    - Right arrow: next result
+    - Auto-scrolls to keep focused block visible
+  </Tab>
+  
+  <Tab title="Enter">
+    **Enter**
+    
+    When block search is open:
+    - Adds the focused block to canvas
+    - Closes search immediately
+    - Keyboard-only workflow
+  </Tab>
+</Tabs>
+
+### Developer Shortcuts
+
+<Warning>
+  The following shortcut is for development and will clear your current work:
+  
+  **Cmd/Ctrl + Alt + ` (backtick)**: Load default empty editor (with warning)
+</Warning>
+
+## Canvas Boundaries
+
+The code canvas has built-in boundary constraints:
+
+### Panning Limits
+
+You cannot pan the canvas completely off-screen:
+
+- At least half the canvas width remains visible
+- At least half the canvas height remains visible
+- Prevents losing track of your workspace
+
+<CodeGroup>
+```js Boundary Calculation
+// Horizontal constraint
+const minLeft = -maxAllBlockWidth + canvasWidth / 2
+const maxLeft = lineNumberWidth
+
+// Vertical constraint
+const minTop = -maxAllBlockHeight + canvasHeight / 2
+const maxTop = blockAlphabetHeight
+```
+</CodeGroup>
+
+### Grid Visibility
+
+The grid axes (line numbers and block alphabets) are always visible:
+
+- **Line numbers**: Fixed to the left edge
+- **Block alphabets**: Fixed to the top edge
+- Move with the canvas when panning
+- Always provide position reference
+
+## Cursor States
+
+The cursor changes to indicate available actions:
+
+<Tabs>
+  <Tab title="Default">
+    Standard arrow cursor when hovering over most interface elements.
+  </Tab>
+  
+  <Tab title="Grab">
+    Open hand cursor when hovering over empty block rooms, indicating you can pan the canvas.
+  </Tab>
+  
+  <Tab title="Grabbing">
+    Closed hand cursor when actively panning the canvas.
+  </Tab>
+  
+  <Tab title="Pointer">
+    Hand pointer cursor when hovering over interactive elements like blocks, nodes, and buttons.
+  </Tab>
+</Tabs>
+
+## Panel Resizing
+
+The Factory and Playground panels can be resized:
+
+### Dragging the Separator
+
+<Steps>
+  <Step title="Hover on Separator">
+    Move your cursor over the vertical line between Factory and Playground.
+  </Step>
+  
+  <Step title="Click and Drag">
+    Click and hold the separator, then drag left or right.
+  </Step>
+  
+  <Step title="Release">
+    Release to set the new panel widths.
+  </Step>
+</Steps>
+
+<Tip>
+  The Factory has a minimum width to ensure usability. You cannot resize it below this threshold.
+</Tip>
+
+### Factory Section Resizing
+
+Each section in the Factory can be resized vertically:
+
+<Steps>
+  <Step title="Locate Resize Bar">
+    Find the thin bar at the bottom edge of a Factory section.
+  </Step>
+  
+  <Step title="Drag Vertically">
+    Click and drag the resize bar up or down.
+  </Step>
+  
+  <Step title="Release">
+    Release to set the new height. The height is saved with your project.
+  </Step>
+</Steps>
+
+## Viewer Navigation
+
+The Viewer window can be repositioned:
+
+<Steps>
+  <Step title="Click Header">
+    Click and hold the Viewer header (the grab cursor indicates it's draggable).
+  </Step>
+  
+  <Step title="Drag Window">
+    Move the Viewer to any position on screen.
+  </Step>
+  
+  <Step title="Release">
+    Release to place the Viewer. It's constrained to stay within window bounds.
+  </Step>
+</Steps>
+
+See [Viewer](/editor/viewer) for all Viewer controls.
+
+## File Drag and Drop
+
+You can load `.b5.json` project files by dragging them into the editor:
+
+<Steps>
+  <Step title="Prepare File">
+    Locate a `.b5.json` file in your file manager.
+  </Step>
+  
+  <Step title="Drag to Editor">
+    Drag the file and hover it over the editor interface.
+    
+    A file upload overlay appears.
+  </Step>
+  
+  <Step title="Drop to Load">
+    Release the file to load it.
+    
+    Your current work is replaced with the loaded project.
+  </Step>
+</Steps>
+
+<Warning>
+  Drag and drop will replace your current work. Save first if you want to keep it.
+</Warning>
+
+## Touch and Trackpad
+
+While b5 is primarily designed for mouse interaction, trackpad gestures work for:
+
+- **Pinch to zoom**: Two-finger pinch on trackpad
+- **Scroll gestures**: Two-finger scroll for panning/zooming
+- **Click and drag**: Single-finger drag after click
+
+<Note>
+  Touch screen support is not currently optimized. A mouse or trackpad is recommended for the best experience.
+</Note>
+
+## Performance Tips
+
+<CardGroup cols={2}>
+  <Card title="Zoom Before Panning" icon="magnifying-glass">
+    Zoom out for an overview before panning to distant blocks.
+  </Card>
+  
+  <Card title="Use Search Instead" icon="bolt">
+    Block search is faster than panning to find specific blocks.
+  </Card>
+  
+  <Card title="Minimize When Editing" icon="compress">
+    Minimize the Viewer to maximize workspace when editing code.
+  </Card>
+  
+  <Card title="Save Frequently" icon="floppy-disk">
+    Use Cmd/Ctrl + S often to save your work.
+  </Card>
+</CardGroup>
+
+## Accessibility
+
+<Warning>
+  Accessibility features are currently limited. Future versions will include:
+  - Keyboard-only navigation
+  - Screen reader support
+  - High contrast themes
+  - Configurable zoom levels
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Block Search" icon="magnifying-glass" href="/editor/block-search">
+    Learn the fastest way to add blocks
+  </Card>
+  
+  <Card title="Playground" icon="grid-2" href="/editor/playground">
+    Understand the main code canvas
+  </Card>
+</CardGroup>

@@ -1,0 +1,303 @@
+---
+title: Number Blocks
+description: Blocks for working with numeric values and sliders
+---
+
+## Overview
+
+Number blocks provide numeric values for your sketch. They can be static constants or interactive sliders that let you adjust values in real-time.
+
+## number
+
+Provides a static numeric value.
+
+<ParamField path="value" type="number" required>
+  The numeric value (can be integer or decimal)
+</ParamField>
+
+**Output:**
+- The specified numeric value
+
+### Example Usage
+
+```json
+{
+  "name": "number",
+  "source": "original",
+  "inlineData": [500],
+  "output": { "0": [["1", "0", "0"]] }
+}
+```
+
+Number blocks are commonly used for:
+- Canvas dimensions
+- Fixed shape sizes  
+- Constant values in calculations
+- Initial values for variables
+
+From the Bounce Ball example:
+
+```
+Variable: cnv
+  Line 0: [number: 500] -> width
+          [numberSlider: 300, 0-600] -> height
+  Line 1: [createCanvas] <- 500 × (slider height)
+```
+
+### Integer vs Decimal
+
+The number block accepts both:
+- Integers: `100`, `500`, `0`, `-50`
+- Decimals: `3.14159`, `0.5`, `1.618`, `2.5`
+
+```
+Line 0: [number: 3.14159] -> PI for rotation
+Line 1: [number: 0.05] -> small increment for animation
+```
+
+## numberSlider
+
+Provides an interactive slider for adjusting numeric values in real-time.
+
+<ParamField path="value" type="number" required>
+  Initial/current value
+</ParamField>
+
+<ParamField path="min" type="number" required>
+  Minimum slider value
+</ParamField>
+
+<ParamField path="max" type="number" required>
+  Maximum slider value
+</ParamField>
+
+<ParamField path="step" type="number" required>
+  Step size for slider increments
+</ParamField>
+
+**Output:**
+- The current slider value
+
+### Example Usage
+
+```json
+{
+  "name": "numberSlider",
+  "source": "original",
+  "inlineData": [40, 0, 50, 5],
+  "output": { "0": [["5", "3", "2"], ["1", "2", "0"]] }
+}
+```
+
+This creates a slider:
+- Current value: 40
+- Range: 0 to 50
+- Step size: 5 (values: 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50)
+
+From the Bounce Ball example:
+
+```
+Playground:
+  Line 0: [numberSlider: 40, 0-50, step 5] -> circle radius
+  ...
+  Line 5: [circle] <- x, y, radius from slider
+```
+
+Moving the slider instantly updates the circle's size while the sketch is running.
+
+### Slider Ranges
+
+<Tip>
+**Choose Appropriate Ranges**: Set min/max values that make sense for your use case:
+- Canvas dimensions: 100-1000 might be reasonable
+- Circle radius: 10-200 for visibility
+- Rotation speed: 0-0.5 for smooth animation  
+- Alpha values: 0-255 for full transparency range
+</Tip>
+
+### Step Sizes
+
+The step parameter controls precision:
+
+```
+[numberSlider: 50, 0-100, step 1]    // Fine control: 0,1,2,3...100
+[numberSlider: 50, 0-100, step 5]    // Coarse control: 0,5,10,15...100  
+[numberSlider: 0.5, 0-1, step 0.01]  // Decimal precision: 0.00,0.01,0.02...
+```
+
+## fractionSlider
+
+A specialized slider that works with fractional values, often used for percentages or ratios.
+
+<ParamField path="value" type="number" required>
+  Initial value
+</ParamField>
+
+<ParamField path="min" type="number" required>
+  Minimum value
+</ParamField>
+
+<ParamField path="max" type="number" required>
+  Maximum value
+</ParamField>
+
+<ParamField path="step" type="number" required>
+  Step increment
+</ParamField>
+
+**Output:**
+- The current fractional value
+
+### Example Usage
+
+From the default intro example:
+
+```json
+{
+  "name": "fractionSlider",
+  "source": "original",
+  "input": { "0": ["0", "1", "0"] },  // Takes canvas width as input
+  "inlineData": [30, 0, 100, 5],
+  "output": { "0": [["2", "1", "0"]] }
+}
+```
+
+This creates a slider from 0-100 representing a percentage, with output value at 30%.
+
+From the Physics example:
+
+```
+Line 1: [canvasSize] -> height
+        [fractionSlider: 95, 0-100, step 5] <- takes height as input
+        // Outputs height × 0.95 for ground position
+```
+
+The fraction slider multiplies its input by the fractional value (95/100 = 0.95).
+
+## Using Numbers in Calculations
+
+Number blocks feed into operator blocks for calculations:
+
+### Basic Math
+
+```
+Line 0: [number: 100] -> a
+        [number: 50] -> b
+Line 1: [add] <- a, b = 150
+        [subtract] <- a, b = 50  
+        [multiply] <- a, b = 5000
+        [divide] <- a, b = 2
+```
+
+### Dynamic Calculations
+
+```
+Line 0: [canvasSize] -> width, height
+        [numberSlider: 0.5, 0-1, step 0.1] -> fraction
+Line 1: [multiply] <- width, fraction
+        // Output: width × slider value (e.g., 500 × 0.5 = 250)
+```
+
+### Incrementing Values
+
+From the Bounce Ball example's boundaries function:
+
+```
+Function: boundaries
+  Input: radius (num parameter)
+  
+  Line 0: [number: 0] -> minimum
+          [num: radius] -> radius parameter
+          [canvasSize] -> width, height
+  Line 2: [add] <- 0, radius = lower bound
+          [subtract] <- width, radius = upper width bound
+          [subtract] <- height, radius = upper height bound
+  
+  Outputs: lowerBound, upperWidth, upperHeight
+```
+
+## Common Number Patterns
+
+### Pattern 1: Canvas Dimensions
+
+```
+Variable: cnv
+  [number: 500] -> width
+  [number: 500] -> height  
+  [createCanvas] <- width, height
+```
+
+or with sliders for adjustability:
+
+```
+Variable: cnv
+  [numberSlider: 300, 0-600, step 100] -> width
+  [numberSlider: 300, 0-600, step 100] -> height
+  [createCanvas] <- width, height
+```
+
+### Pattern 2: Animation Speed
+
+```
+Playground:
+  Line 0: [numberSlider: 0.05, 0-0.5, step 0.01] -> speed
+          [add] <- currentAngle, speed -> newAngle
+  Line 1: [rotate] <- newAngle
+          [shape] <- draws rotating shape
+```
+
+### Pattern 3: Size and Position
+
+```
+Line 0: [numberSlider: 100, 10-200, step 10] -> diameter
+Line 1: [canvasSize] -> width, height
+        [divide: 2] <- width/2, height/2 -> centerX, centerY
+Line 2: [circle] <- centerX, centerY, diameter
+```
+
+### Pattern 4: Color Ranges
+
+```
+Function: randomRGB
+  Line 0: [number: 170] -> min
+          [number: 220] -> max
+  Line 1: [random] <- min, max -> R value
+          [random] <- min, max -> G value
+          [random] <- min, max -> B value
+```
+
+## Number Block Tips
+
+<Tip>
+**Use Sliders for Experimentation**: When developing, use `numberSlider` instead of `number` for values you might want to adjust. Once you find the right value, you can replace it with a static `number` block.
+</Tip>
+
+<Tip>
+**Meaningful Ranges**: Set slider ranges based on the actual useful range:
+- Too wide: hard to fine-tune (0-10000 when you want 50-150)
+- Too narrow: can't explore enough options (90-110 when 0-500 is useful)
+</Tip>
+
+<Tip>
+**Step Size for Precision**: Use smaller steps (0.01, 0.1, 1) when you need precision, larger steps (5, 10, 50) when you need speed.
+</Tip>
+
+<Info>
+**Live Updates**: Sliders update in real-time while your sketch runs at 60 FPS. This makes them perfect for tweaking visual parameters on the fly.
+</Info>
+
+## Storing Number Values
+
+Numbers can be stored in variables for reuse:
+
+```
+Variable: radius
+  [numberSlider: 50, 10-100, step 5]
+  
+Playground:
+  Line 0: [radius] -> get value
+Line 1: [circle] <- x, y, radius
+  Line 2: [circle] <- x2, y2, radius  // Reuse same radius
+```
+
+This is useful when you want multiple shapes or calculations to use the same value.

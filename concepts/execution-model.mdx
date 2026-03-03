@@ -1,0 +1,211 @@
+---
+title: Execution Model
+description: How b5 executes your visual code - from left to right, top to bottom
+---
+
+Unlike most node-based visual programming languages, b5 has a **sequential, position-based execution model**. The physical position of blocks on the grid determines when they execute.
+
+## Sequential Execution
+
+<Warning>
+  b5 executes blocks **from left to right, and line by line from top to bottom** - just like reading text code.
+</Warning>
+
+This execution order is different from dataflow-only systems like Grasshopper or Max/MSP, where execution order depends solely on wire connections. In b5, **position matters**.
+
+### Execution Order Example
+
+Given blocks arranged on the grid:
+
+```
+Row 0:  [Block A]  [Block B]  [Block C]
+Row 1:             [Block D]  [Block E]
+Row 3:  [Block F]             [Block G]
+```
+
+Execution order: A → B → C → D → E → F → G
+
+<Note>
+  The execution follows the grid coordinates: blocks are sorted by row (y-coordinate) first, then by column (x-coordinate) within each row.
+</Note>
+
+## Playground vs Factory
+
+The b5 editor has two distinct execution environments:
+
+### Playground
+
+<Card title="60 FPS Loop" icon="repeat">
+  The Playground canvas runs **60 times per second** by default, similar to the `draw()` function in p5.js.
+</Card>
+
+The Playground is where your main animation and interactive code lives. Every block in the Playground:
+- Executes left-to-right, top-to-bottom
+- Runs on every frame (60 FPS)
+- Can access variables and functions defined in Factory
+- Updates the canvas in real-time
+
+### Factory
+
+The Factory section has three subsections with different execution behaviors:
+
+<AccordionGroup>
+  <Accordion title="Variables" icon="code">
+    Similar to the `setup()` function in p5.js, the Variable section:
+    - Executes **once** before the Playground starts
+    - Runs left-to-right, top-to-bottom within the section
+    - Creates reusable values accessible in Playground
+    - Triggers a sketch reset when modified
+    
+    Variable blocks have:
+    - No input nodes
+    - Static output values
+    - A preview that shows in the Factory sidebar
+  </Accordion>
+
+  <Accordion title="Functions" icon="function">
+    Function definitions in Factory:
+    - **Don't execute** until called from Playground
+    - Define reusable logic with inputs and outputs
+    - Execute left-to-right, top-to-bottom when called
+    - Can be used multiple times in Playground
+    
+    Custom function blocks appear in block search after definition.
+  </Accordion>
+
+  <Accordion title="Objects" icon="cube">
+    <Warning>
+      Object definitions are currently work-in-progress.
+    </Warning>
+  </Accordion>
+</AccordionGroup>
+
+## Position Constraints
+
+The position-based execution model creates important constraints:
+
+### Wire Direction Rules
+
+<Info>
+  Wires can only flow **downward** in terms of row position. This ensures execution order stays predictable.
+</Info>
+
+From the source code (codeBlocks.js:273-275):
+
+```javascript
+if (
+  ioEnd === startNodeType ||
+  (ioEnd === 'input' && endBlockInd[0] <= startBlockInd[0]) ||
+  (ioEnd === 'output' && endBlockInd[0] >= startBlockInd[0])
+)
+  return // Cannot connect
+```
+
+This means:
+- Input connections must come from blocks in **previous rows** (smaller y-index)
+- Output connections must go to blocks in **later rows** (larger y-index)
+- Blocks cannot connect to other blocks on the same row through input/output wires
+
+### Same-Line Restrictions
+
+From the source code (codeBlocks.js:363-374):
+
+```javascript
+_hasParentOrChildInTheSameLine(bD, y) {
+  if (bD.input)
+    // Inputs cannot be below the block
+    for (let i in bD.input)
+      if (bD.input[i] !== null && bD.input[i][0] >= y) return true
+  if (bD.output)
+    // Outputs cannot be above the block
+    for (let i in bD.output)
+      for (let j in bD.output[i]) if (bD.output[i][j][0] <= y) return true
+  
+  return false
+}
+```
+
+You **cannot move a block** to a row if:
+- It has input connections from blocks at or below that row
+- It has output connections to blocks at or above that row
+
+## Real-Time Execution
+
+<Card title="Live Coding" icon="bolt">
+  b5 features **live coding** - changes to your visual code are reflected immediately without restarting the sketch.
+</Card>
+
+When you modify blocks in Playground:
+- The sketch continues running at 60 FPS
+- Changes take effect on the next frame
+- The canvas updates in real-time
+- No need to restart or recompile
+
+When you modify Factory sections:
+- Variables trigger a sketch reset
+- Functions update their definition for future calls
+- The Playground restarts with new definitions
+
+## Grid System
+
+The execution order is determined by the grid coordinate system:
+
+```javascript
+// From blockRenderer.js:474-476
+style={{
+  top: this.y * lineHeight + 'px',
+  left: this.x * roomWidth + 'px',
+}}
+```
+
+<Note>
+  Each block occupies a grid cell defined by:
+  - **x-coordinate** (column): determines left-right order
+  - **y-coordinate** (row/line): determines top-bottom order
+  
+  Constants used:
+  - `roomWidth`: horizontal spacing between columns
+  - `lineHeight`: vertical spacing between rows
+</Note>
+
+## Execution Flow Diagram
+
+```
+Frame Start (60 FPS)
+  ↓
+Execute Row 0 blocks (left to right)
+  ↓
+Execute Row 1 blocks (left to right)
+  ↓
+Execute Row 2 blocks (left to right)
+  ↓
+  ... continue for all rows ...
+  ↓
+Frame End → Next Frame
+```
+
+## Why Position-Based?
+
+The position-based execution model provides several benefits:
+
+<CardGroup cols={2}>
+  <Card title="Readable" icon="book">
+    Code reads like text: left-to-right, top-to-bottom - a familiar mental model
+  </Card>
+  
+  <Card title="Predictable" icon="list-check">
+    Execution order is always visible from block positions
+  </Card>
+  
+  <Card title="Structured" icon="table-cells">
+    The grid naturally organizes code into logical sections
+  </Card>
+  
+  <Card title="Sequential" icon="arrow-down">
+    Perfect for animation and drawing operations that need specific ordering
+  </Card>
+</CardGroup>
+
+<Tip>
+  Think of each row as a "line of code" - just like traditional programming, the order of lines matters!
+</Tip>

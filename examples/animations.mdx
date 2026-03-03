@@ -1,0 +1,578 @@
+---
+title: "Animations"
+description: "Create smooth animations using bounce, random, and time-based techniques in b5"
+---
+
+## Overview
+
+Animations in b5 leverage the 60 FPS execution loop to create smooth motion and dynamic effects. This guide covers:
+- Using the bounce block for oscillating motion
+- Creating random variations
+- Time-based animations
+- Motion trails and visual effects
+- Combining animation techniques
+
+<Note>
+The Playground section runs at 60 frames per second by default, providing the foundation for all animations.
+</Note>
+
+## The Bounce Block
+
+The `bounce` block is the core animation primitive in b5, creating automatic back-and-forth motion.
+
+### Basic Usage
+
+From the bounce ball example:
+
+```json
+{
+  "name": "bounce",
+  "input": {
+    "0": ["1", "2", "0"],  // lower boundary
+    "1": ["1", "2", "1"],  // upper boundary
+    "2": ["1", "3", "0"]   // step size
+  },
+  "output": {
+    "0": [
+      ["5", "3", "0"],
+      ["5", "2", "0"]
+    ]
+  }
+}
+```
+
+<ParamField path="input.0" type="number" required>
+  Minimum value - the bounce will reverse direction when reaching this value
+</ParamField>
+<ParamField path="input.1" type="number" required>
+  Maximum value - the bounce will reverse direction when reaching this value
+</ParamField>
+<ParamField path="input.2" type="number" required>
+  Step size - how much to increment/decrement each frame. Larger values = faster motion
+</ParamField>
+
+### How Bounce Works
+
+<Steps>
+  <Step title="Initialization">
+    The bounce block starts at a value between the minimum and maximum (typically the minimum).
+  </Step>
+
+  <Step title="Increment">
+    Each frame, the current value increases by the step size:
+    ```
+    Frame 1: 0 + 7 = 7
+    Frame 2: 7 + 7 = 14
+    Frame 3: 14 + 7 = 21
+    ```
+  </Step>
+
+  <Step title="Boundary Detection">
+    When the value reaches or exceeds the upper boundary, direction reverses:
+    ```
+    Frame N: 493 + 7 = 500 (max reached)
+    Frame N+1: 500 - 7 = 493 (now decrementing)
+    ```
+  </Step>
+
+  <Step title="Continuous Motion">
+    The value continues bouncing between boundaries indefinitely:
+    ```
+    0 → 7 → 14 → ... → 493 → 500 → 493 → ... → 7 → 0 → 7 → ...
+    ```
+  </Step>
+</Steps>
+
+## Bounce Ball Example Breakdown
+
+The bounce ball demonstrates coordinated animation in both X and Y axes:
+
+### Setting Up Boundaries
+
+```json
+{
+  "name": "boundaries",
+  "source": "custom",
+  "input": { "0": ["0", "1", "0"] },  // radius
+  "output": {
+    "0": [
+      ["3", "1", "0"],  // lower bound
+      ["3", "3", "0"]
+    ],
+    "1": [["3", "1", "1"]],  // upper width bound
+    "2": [["3", "3", "1"]]   // upper height bound
+  }
+}
+```
+
+<Accordion title="View boundaries function implementation">
+The boundaries function ensures the ball stays fully visible:
+
+```json
+{
+  "blocks": {
+    "0": {
+      "0": { "name": "number", "inlineData": [0] },
+      "2": { "name": "num", "input": { "0": null } },  // radius input
+      "3": { "name": "canvasSize" }
+    },
+    "2": {
+      "0": {
+        "name": "add",
+        "input": {
+          "0": ["0", "0", "0"],  // 0
+          "1": ["0", "2", "0"]   // + radius
+        }
+      },
+      "2": {
+        "name": "subtract",
+        "input": {
+          "0": ["0", "3", "0"],  // width
+          "1": ["0", "2", "0"]   // - radius
+        }
+      },
+      "3": {
+        "name": "subtract",
+        "input": {
+          "0": ["0", "3", "1"],  // height
+          "1": ["0", "2", "0"]   // - radius
+        }
+      }
+    }
+  }
+}
+```
+
+Calculations:
+- Lower bound: 0 + radius (keeps circle from going off top/left)
+- Upper width: width - radius (keeps circle from going off right)
+- Upper height: height - radius (keeps circle from going off bottom)
+</Accordion>
+
+### Coordinated X/Y Animation
+
+Two bounce blocks create 2D motion:
+
+```json
+// Horizontal bounce
+{
+  "name": "bounce",
+  "input": {
+    "0": ["1", "2", "0"],  // lower: radius
+    "1": ["1", "2", "1"],  // upper: width - radius
+    "2": ["1", "3", "0"]   // step: 7
+  },
+  "output": {
+    "0": [
+      ["5", "3", "0"],  // to circle x
+      ["5", "2", "0"]   // to fillRGBA red
+    ]
+  }
+},
+
+// Vertical bounce
+{
+  "name": "bounce",
+  "input": {
+    "0": ["1", "2", "0"],  // lower: radius
+    "1": ["1", "2", "2"],  // upper: height - radius
+    "2": ["1", "3", "0"]   // step: 7
+  },
+  "output": {
+    "0": [
+      ["5", "3", "1"],  // to circle y
+      ["5", "2", "1"]   // to fillRGBA green
+    ]
+  }
+}
+```
+
+<Tip>
+Using the same step size (7) for both axes creates diagonal motion. Try different step sizes to create interesting Lissajous-like patterns.
+</Tip>
+
+### Position-Based Color Animation
+
+The ball's color changes as it moves:
+
+```json
+{
+  "name": "fillRGBA",
+  "input": {
+    "0": ["3", "1", "0"],  // red = x position
+    "1": ["3", "3", "0"],  // green = y position
+    "2": null,              // blue (default/0)
+    "3": null               // alpha (default/255)
+  }
+}
+```
+
+This creates a gradient effect:
+- Left side (x=40): Low red
+- Right side (x=460): High red
+- Top (y=40): Low green
+- Bottom (y=260): High green
+
+## Random Animations
+
+The `random` block generates values within a range, useful for variation.
+
+### Triggered Random
+
+From the line drawing example's `randomRGB` function:
+
+```json
+{
+  "name": "random",
+  "input": {
+    "0": ["0", "0", "0"],  // trigger: only randomize when true
+    "1": ["0", "1", "0"],  // minimum: 170
+    "2": ["0", "2", "0"]   // maximum: 220
+  },
+  "output": { "0": [] }
+}
+```
+
+<Warning>
+Without a trigger input, the random block generates a new value every frame (60 times per second), creating rapid flickering. Use a boolean trigger for controlled randomization.
+</Warning>
+
+### Physics Example Random Sizes
+
+The Matter.js example uses random for box dimensions:
+
+```json
+{
+  "name": "random size",
+  "source": "custom",
+  "input": { "0": ["0", "0", "0"] },  // mouseIsPressed trigger
+  "output": {
+    "0": [["4", "0", "3"]],  // random width
+    "1": [["4", "0", "4"]]   // random height
+  }
+}
+```
+
+Implementation generates values between 10 and 40:
+
+```json
+{
+  "blocks": {
+    "0": {
+      "1": { "name": "number", "inlineData": [10] },
+      "2": { "name": "number", "inlineData": [40] }
+    },
+    "2": {
+      "1": {
+        "name": "random",
+        "input": {
+          "0": ["0", "0", "0"],
+          "1": ["0", "1", "0"],
+          "2": ["0", "2", "0"]
+        }
+      },
+      "2": { /* second random block for height */ }
+    }
+  }
+}
+```
+
+## Motion Trails
+
+The line drawing example creates trails using semi-transparent backgrounds:
+
+```json
+{
+  "name": "blackBG",
+  "source": "custom"
+}
+```
+
+<Accordion title="View blackBG implementation">
+```json
+{
+  "blocks": {
+    "0": {
+      "0": {
+        "name": "number",
+        "inlineData": [0],  // RGB value
+        "output": {
+          "0": [
+            ["1", "0", "0"],  // R
+            ["1", "0", "1"],  // G
+            ["1", "0", "2"]   // B
+          ]
+        }
+      },
+      "1": {
+        "name": "number",
+        "inlineData": [20],  // Low alpha value
+        "output": { "0": [["1", "0", "3"]] }
+      }
+    },
+    "1": {
+      "0": {
+        "name": "background",
+        "input": {
+          "0": ["0", "0", "0"],  // R: 0
+          "1": ["0", "0", "0"],  // G: 0
+          "2": ["0", "0", "0"],  // B: 0
+          "3": ["0", "1", "0"]   // Alpha: 20
+        }
+      }
+    }
+  }
+}
+```
+</Accordion>
+
+### How Motion Trails Work
+
+<Steps>
+  <Step title="Low Alpha Background">
+    Each frame, a semi-transparent black background (alpha: 20) is drawn over the previous frame.
+  </Step>
+
+  <Step title="Previous Content Fades">
+    Instead of completely clearing the canvas, the background only partially obscures previous drawings.
+  </Step>
+
+  <Step title="Trail Effect">
+    Over multiple frames, older drawings gradually fade:
+    ```
+    Frame 1: Line at full opacity (255)
+    Frame 2: Line at ~235 opacity (partially covered)
+    Frame 3: Line at ~215 opacity (more covered)
+    ...
+    Frame 13: Line at ~0 opacity (fully faded)
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+Adjust the alpha value to control trail length:
+- Lower alpha (e.g., 10) = longer trails
+- Higher alpha (e.g., 50) = shorter trails
+- Alpha 255 = no trails (complete clearing)
+</Tip>
+
+## Animation Patterns
+
+<AccordionGroup>
+  <Accordion title="Oscillating Size">
+    Use bounce to animate size parameters:
+    ```json
+    {
+      "name": "bounce",
+      "input": {
+        "0": ["10"],   // min radius
+        "1": ["50"],   // max radius
+        "2": ["2"]     // step
+      }
+    },
+    {
+      "name": "circle",
+      "input": {
+        "0": ["x"],
+        "1": ["y"],
+        "2": ["bounce", "output"]  // animated radius
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Rotation Effect">
+    Combine multiple bounce blocks with different speeds:
+    ```json
+    // Fast horizontal
+    { "name": "bounce", "inlineData": [0, 500, 8] },
+    // Slow vertical  
+    { "name": "bounce", "inlineData": [0, 300, 3] }
+    ```
+    Different step sizes create complex orbital patterns.
+  </Accordion>
+
+  <Accordion title="Pulsing Colors">
+    Animate color channels independently:
+    ```json
+    {
+      "name": "fillRGBA",
+      "input": {
+        "0": ["bounce1"],  // red oscillates
+        "1": ["bounce2"],  // green oscillates at different rate
+        "2": ["128"],      // blue constant
+        "3": null
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Spawning with Random Properties">
+    Combine triggers, random, and creation:
+    ```json
+    {
+      "name": "mouseIsPressed",
+      "output": { "0": [["trigger"]] }
+    },
+    {
+      "name": "random",
+      "input": {
+        "0": ["trigger"],
+        "1": ["10"],
+        "2": ["50"]
+      }
+    },
+    {
+      "name": "createObject",
+      "input": {
+        "trigger": ["trigger"],
+        "size": ["random", "output"]
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Adjustable Animation Speed
+
+Use sliders to control animation parameters in real-time:
+
+```json
+{
+  "name": "numberSlider",
+  "inlineData": [7, 0, 20, 1],  // default 7, range 0-20
+  "output": { "0": [["bounce", "step"]] }
+},
+{
+  "name": "bounce",
+  "input": {
+    "0": ["min"],
+    "1": ["max"],
+    "2": ["slider", "output"]  // step from slider
+  }
+}
+```
+
+From the bounce ball example:
+```json
+{
+  "name": "numberSlider",
+  "inlineData": [40, 0, 50, 5],  // ball radius
+  "output": {
+    "0": [
+      ["5", "3", "2"],  // to circle radius
+      ["1", "2", "0"]   // to boundaries function
+    ]
+  }
+}
+```
+
+Adjusting the radius slider:
+- Changes ball size
+- Recalculates boundaries
+- Affects animation range
+- All in real-time without restarting
+
+<Note>
+This is a key feature of b5 - live coding allows you to adjust parameters while the animation runs, providing immediate visual feedback.
+</Note>
+
+## Physics-Based Animation
+
+The Matter.js example demonstrates physics simulation:
+
+```json
+// Initialize physics engine (in Factory/variable)
+{
+  "name": "engine",
+  "type": "variable",
+  "blocks": {
+    "0": {
+      "0": { "name": "matter_startEngine", "source": "library" }
+    }
+  }
+},
+
+// Create falling boxes (in Playground)
+{
+  "name": "matter_box",
+  "source": "library",
+  "input": {
+    "0": ["0", "0", "0"],  // trigger: mouseIsPressed
+    "1": ["1", "0", "0"],  // x: mouseX
+    "2": ["1", "0", "1"],  // y: mouseY
+    "3": ["1", "1", "0"],  // width: random
+    "4": ["1", "1", "1"]   // height: random
+  }
+},
+
+// Static ground
+{
+  "name": "matter_ground",
+  "source": "library",
+  "input": {
+    "0": ["1", "2", "0"],  // restitution (bounciness)
+    "1": ["1", "3", "0"]   // isStatic: true
+  }
+}
+```
+
+Physics provides:
+- Automatic gravity
+- Collision detection
+- Realistic bouncing
+- Rotation and angular velocity
+
+<Tip>
+Use a fraction slider (0-100%) for physics properties like restitution. The example uses 95% for slightly bouncy boxes.
+</Tip>
+
+## Performance Monitoring
+
+Track animation performance with the frame rate display:
+
+```json
+{
+  "name": "frameRateShow"
+}
+```
+
+This shows the current FPS in the corner. If FPS drops below 60, consider:
+- Reducing the number of objects
+- Simplifying physics calculations
+- Using fewer random calls per frame
+- Optimizing custom functions
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Appropriate Step Sizes" icon="gauge">
+    Larger steps = faster motion. Start with small values (3-7) and adjust based on canvas size.
+  </Card>
+  <Card title="Trigger Random Wisely" icon="dice">
+    Always use triggers with random blocks to avoid flickering and maintain consistent values.
+  </Card>
+  <Card title="Calculate Boundaries" icon="border-all">
+    Account for object size when setting bounce boundaries to keep objects fully visible.
+  </Card>
+  <Card title="Test Different Speeds" icon="forward-fast">
+    Combine bounce blocks with different step sizes to create complex, interesting motion patterns.
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Interactive Graphics" icon="hand-pointer" href="/examples/interactive-graphics">
+    Add user interaction to your animations
+  </Card>
+  <Card title="Drawing Shapes" icon="shapes" href="/examples/drawing-shapes">
+    Explore more drawing and styling options
+  </Card>
+  <Card title="Math Blocks Reference" icon="calculator" href="/reference/blocks/math">
+    Learn about mathematical operations for animations
+  </Card>
+  <Card title="Animation Blocks Reference" icon="film" href="/reference/blocks/animation">
+    Complete reference for bounce, random, and timing blocks
+  </Card>
+</CardGroup>

@@ -1,0 +1,258 @@
+---
+title: Block Search
+description: Quickly find and add blocks with double-click search
+---
+
+Block search is the fastest way to add blocks to your code canvas. Double-click any empty block room to open an intelligent search interface that finds blocks by name, type, or description.
+
+## Opening Block Search
+
+To open block search:
+
+<Steps>
+  <Step title="Find an Empty Room">
+    Locate an empty block room in the Playground or Factory where you want to add a block.
+  </Step>
+  
+  <Step title="Double-Click">
+    **Double-click** on the empty block room. The search interface appears immediately.
+  </Step>
+</Steps>
+
+<Tip>
+  Block search works in both the Playground and Factory code canvases.
+</Tip>
+
+## Search Interface
+
+The block search interface consists of:
+
+### Search Input
+
+A text field with the placeholder: **"Search name, type, or description"**
+
+The search is fuzzy and matches against:
+
+- Block names (e.g., "ellipse", "fill", "random")
+- Block types (e.g., "shape", "color", "math")
+- Block descriptions and functionality
+
+### Results List
+
+As you type, matching blocks appear in a horizontal scrollable list showing:
+
+- Block preview with visual styling
+- Block description (truncated to ~65 characters)
+- Input and output nodes
+
+<Note>
+  Search results update in real-time as you type. Leave the input empty to close the results.
+</Note>
+
+## Keyboard Navigation
+
+Block search supports full keyboard control:
+
+<Tabs>
+  <Tab title="Arrow Keys">
+    **Left Arrow** / **Right Arrow**
+    
+    Navigate between search results. The focused block is highlighted and its description is emphasized.
+    
+    The list automatically scrolls to keep the focused block visible.
+  </Tab>
+  
+  <Tab title="Enter">
+    **Enter**
+    
+    Add the currently focused block to the canvas at the selected position.
+    
+    The search interface closes immediately after adding the block.
+  </Tab>
+  
+  <Tab title="Escape">
+    **Escape**
+    
+    Close the search interface without adding a block.
+    
+    The canvas returns to its previous state.
+  </Tab>
+</Tabs>
+
+## Mouse Interaction
+
+### Adding Blocks
+
+<Steps>
+  <Step title="Click a Block">
+    Click any block in the search results to select it.
+  </Step>
+  
+  <Step title="Block is Added">
+    The block is immediately added to the canvas at the position where you opened search.
+  </Step>
+  
+  <Step title="Search Closes">
+    The search interface closes automatically.
+  </Step>
+</Steps>
+
+### Moving the Search Bar
+
+The search interface can be repositioned:
+
+<Steps>
+  <Step title="Click Empty Area">
+    Click on the search bar background (not on a block or the input field).
+  </Step>
+  
+  <Step title="Drag">
+    Drag the search bar to any position on screen.
+  </Step>
+  
+  <Step title="Release">
+    Release to place the search bar. It stays within the window bounds.
+  </Step>
+</Steps>
+
+<Tip>
+  Moving the search bar is useful when it's covering the area where you want to add blocks.
+</Tip>
+
+### Closing Search
+
+Click anywhere outside the search bar to close it without adding a block.
+
+## Search Algorithm
+
+The block search uses fuzzy matching to find relevant blocks:
+
+- Searches across multiple fields simultaneously
+- Ranks results by relevance
+- Includes both predefined and custom blocks
+- Updates instantly as you type
+
+<CodeGroup>
+```js Search Fields
+{
+  name: "ellipse",           // Primary search field
+  type: "shape",             // Category/type
+  description: "Draws...",   // Full text description
+  source: "predefined"       // "predefined" or "custom"
+}
+```
+</CodeGroup>
+
+## Block Types
+
+Search results include two sources:
+
+<Tabs>
+  <Tab title="Predefined Blocks">
+    Built-in blocks that come with b5:
+    
+    - Shape drawing blocks
+    - Color and style blocks
+    - Math and logic blocks
+    - Control flow blocks
+    - And many more
+    
+    These blocks are always available and documented with embedded tooltips.
+  </Tab>
+  
+  <Tab title="Custom Blocks">
+    Blocks you created in the Factory:
+    
+    - Variables
+    - Functions
+    - Objects (when implemented)
+    
+    Custom blocks appear in search results with a "custom" source tag.
+  </Tab>
+</Tabs>
+
+## Visual Feedback
+
+### Block Coloring
+
+Each block in search results is displayed with a random color generated when the search opens. This color:
+
+- Helps distinguish blocks visually
+- Makes the interface more engaging
+- Is generated fresh for each search session
+
+<Note>
+  The search color is stored in session storage and cleared when search closes.
+</Note>
+
+### Description Truncation
+
+Descriptions longer than 65 characters are automatically truncated:
+
+- Full words are preserved (no mid-word cuts)
+- Ellipsis ("...") indicates truncation
+- Hover on blocks for full descriptions (embedded documentation)
+
+## Search Context
+
+Block search is context-aware:
+
+- **Playground search**: Shows all available blocks
+- **Factory search**: Shows blocks appropriate for that context
+- **Custom blocks**: Appear alongside predefined blocks
+
+The search updates its available blocks based on the current Factory definitions.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Start Typing Immediately" icon="keyboard">
+    The search input is automatically focused, so you can start typing right away.
+  </Card>
+  
+  <Card title="Use Keywords" icon="key">
+    Search for what the block does ("draw circle") rather than exact names.
+  </Card>
+  
+  <Card title="Navigate with Keys" icon="arrow-right">
+    Use arrow keys and Enter for fast keyboard-only workflow.
+  </Card>
+  
+  <Card title="Close with Escape" icon="xmark">
+    Hit Escape to quickly cancel if you opened search by accident.
+  </Card>
+</CardGroup>
+
+## Embedded Documentation
+
+All blocks in b5 have embedded documentation:
+
+- Hover over any block to see its full description
+- Hover over nodes to see parameter details
+- Hover over input boxes for value explanations
+
+This means you can discover block functionality directly in the search interface.
+
+<Tip>
+  Combine search with hover tooltips to explore available blocks and learn what they do.
+</Tip>
+
+## Limitations
+
+<Warning>
+  - Search can only add blocks to empty block rooms
+  - You cannot replace existing blocks via search
+  - Search shows all blocks regardless of validity in context
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Playground" icon="grid-2" href="/editor/playground">
+    Learn about the main code canvas
+  </Card>
+  
+  <Card title="Factory" icon="flask" href="/editor/factory">
+    Create custom blocks to use in search
+  </Card>
+</CardGroup>

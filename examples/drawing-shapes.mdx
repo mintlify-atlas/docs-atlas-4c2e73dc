@@ -1,0 +1,375 @@
+---
+title: "Drawing Shapes"
+description: "Learn how to draw and style shapes in b5 with examples from the line drawing demo"
+---
+
+## Overview
+
+Drawing shapes is fundamental to creating graphics in b5. This guide covers:
+- Using basic drawing blocks like `circle` and `lineXY`
+- Styling shapes with stroke and fill colors
+- Working with effect blocks for visual styling
+- Understanding the drawing context
+
+<Note>
+All shape drawing happens in the Playground section, which runs at 60 FPS by default.
+</Note>
+
+## Basic Shape Blocks
+
+### Circle
+
+The `circle` block draws a circle at specified coordinates:
+
+```json
+{
+  "name": "circle",
+  "input": {
+    "0": ["3", "1", "0"],  // x position
+    "1": ["3", "3", "0"],  // y position
+    "2": ["0", "1", "0"]   // radius
+  }
+}
+```
+
+<ParamField path="input.0" type="number" required>
+  X coordinate of the circle's center
+</ParamField>
+<ParamField path="input.1" type="number" required>
+  Y coordinate of the circle's center
+</ParamField>
+<ParamField path="input.2" type="number" required>
+  Radius of the circle
+</ParamField>
+
+### Line
+
+The `lineXY` block draws a line between two points. From the line drawing example:
+
+```json
+{
+  "name": "lineXY",
+  "input": {
+    "0": ["1", "3", "0"],  // x1 start point
+    "1": ["1", "3", "0"],  // y1 start point
+    "2": ["1", "4", "0"],  // x2 end point
+    "3": ["1", "4", "1"]   // y2 end point
+  }
+}
+```
+
+<Tip>
+The line drawing example creates an interactive effect by drawing lines from canvas corners to the mouse position.
+</Tip>
+
+## Styling Shapes
+
+### Stroke Color
+
+Use `strokePicker` for quick color selection or `strokeRGBA` for dynamic colors:
+
+<CodeGroup>
+```json Stroke Picker
+{
+  "name": "strokePicker",
+  "inlineData": ["#4a90e2ff"]
+}
+```
+
+```json Stroke RGBA
+{
+  "name": "strokeRGBA",
+  "input": {
+    "0": ["2", "1", "0"],  // red (0-255)
+    "1": ["2", "1", "1"],  // green (0-255)
+    "2": ["2", "1", "2"],  // blue (0-255)
+    "3": null               // alpha (optional)
+  }
+}
+```
+</CodeGroup>
+
+### Fill Color
+
+Similarly, use `fillPicker` or `fillRGBA` for fill colors:
+
+<CodeGroup>
+```json Fill Picker
+{
+  "name": "fillPicker",
+  "inlineData": ["#bd10e0ff"]
+}
+```
+
+```json Fill RGBA
+{
+  "name": "fillRGBA",
+  "input": {
+    "0": ["3", "1", "0"],  // red
+    "1": ["3", "3", "0"],  // green
+    "2": null,              // blue
+    "3": null               // alpha
+  }
+}
+```
+</CodeGroup>
+
+<Warning>
+Fill and stroke are **effect blocks** - they affect all shapes drawn after them in the execution order, not just the next shape.
+</Warning>
+
+## Line Drawing Example Analysis
+
+The line drawing example demonstrates interactive graphics with dynamic styling:
+
+<Steps>
+  <Step title="Setup Black Background">
+    The example uses a custom `blackBG` function to create a semi-transparent background:
+    
+    ```json
+    {
+      "name": "blackBG",
+      "source": "custom"
+    }
+    ```
+    
+    This function implementation:
+    ```json
+    {
+      "blocks": {
+        "0": {
+          "0": { "name": "number", "inlineData": [0] },
+          "1": { "name": "number", "inlineData": [20] }
+        },
+        "1": {
+          "0": {
+            "name": "background",
+            "input": {
+              "0": ["0", "0", "0"],  // R: 0
+              "1": ["0", "0", "0"],  // G: 0
+              "2": ["0", "0", "0"],  // B: 0
+              "3": ["0", "1", "0"]   // Alpha: 20
+            }
+          }
+        }
+      }
+    }
+    ```
+    
+    The low alpha value (20) creates a trailing effect as previous frames slowly fade.
+  </Step>
+
+  <Step title="Get Canvas Corners">
+    A custom `canvasCorners` variable provides the corner coordinates:
+    
+    ```json
+    {
+      "name": "canvasCorners",
+      "type": "variable",
+      "blocks": {
+        "0": {
+          "0": { "name": "number", "inlineData": [0] },
+          "1": { "name": "canvasSize" }
+        }
+      }
+    }
+    ```
+    
+    This outputs:
+    - Output 0: (0, 0) - top-left corner
+    - Output 1: (width, 0) - top-right corner
+    - Output 2: (width, height) - bottom-right corner
+  </Step>
+
+  <Step title="Track Mouse Position">
+    The `mouse` block provides real-time cursor coordinates:
+    
+    ```json
+    {
+      "name": "mouse",
+      "output": {
+        "0": [["4", "3", "2"], ["4", "4", "2"]],  // mouseX
+        "1": [["4", "3", "3"], ["4", "4", "3"]]   // mouseY
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Random Color on Click">
+    The `randomRGB` custom function generates random colors when the mouse is pressed:
+    
+    ```json
+    {
+      "name": "randomRGB",
+      "source": "custom",
+      "input": { "0": ["1", "2", "0"] }  // mouseIsPressed
+    }
+    ```
+    
+    The function uses three `random` blocks to generate R, G, B values between 170 and 220:
+    ```json
+    {
+      "name": "random",
+      "input": {
+        "0": ["0", "0", "0"],  // trigger (boolean)
+        "1": ["0", "1", "0"],  // min: 170
+        "2": ["0", "2", "0"]   // max: 220
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Draw Interactive Lines">
+    Two `lineXY` blocks draw from opposite corners to the mouse:
+    
+    ```json
+    // Line from top-left (0,0) to mouse
+    {
+      "name": "lineXY",
+      "input": {
+        "0": ["1", "3", "0"],  // x1: 0
+        "1": ["1", "3", "0"],  // y1: 0
+        "2": ["1", "4", "0"],  // x2: mouseX
+        "3": ["1", "4", "1"]   // y2: mouseY
+      }
+    },
+    // Line from bottom-right to mouse
+    {
+      "name": "lineXY",
+      "input": {
+        "0": ["1", "3", "1"],  // x1: width
+        "1": ["1", "3", "2"],  // y1: height
+        "2": ["1", "4", "0"],  // x2: mouseX
+        "3": ["1", "4", "1"]   // y2: mouseY
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Control Drawing State">
+    The `stopDraw` block conditionally halts drawing:
+    
+    ```json
+    {
+      "name": "stopDraw",
+      "input": { "0": ["2", "2", "0"] }  // toggle based on mouse press
+    }
+    ```
+    
+    This uses a `toggle` block that flips between true/false when mouse is pressed.
+  </Step>
+</Steps>
+
+## Effect Block Behavior
+
+<Accordion title="Understanding Effect Blocks">
+Effect blocks set the drawing context for subsequent shapes. In b5:
+
+1. **Sequential Execution**: Blocks execute left-to-right, top-to-bottom
+2. **Context Persistence**: Effect blocks remain active until changed
+3. **Visual Feedback**: Selected effect blocks highlight their effective range in the grid
+
+From the bounce ball example:
+```json
+// This stroke color affects all following shapes
+{
+  "name": "strokePicker",
+  "inlineData": ["#4a90e2ff"]
+}
+
+// This fill color is based on position
+{
+  "name": "fillRGBA",
+  "input": {
+    "0": ["3", "1", "0"],  // x -> red
+    "1": ["3", "3", "0"],  // y -> green
+    "2": null,
+    "3": null
+  }
+}
+
+// Circle inherits the stroke and fill from above
+{
+  "name": "circle",
+  "input": { ... }
+}
+```
+</Accordion>
+
+## Common Patterns
+
+<AccordionGroup>
+  <Accordion title="Gradient Effects">
+    Map position to color values for gradient effects:
+    ```json
+    {
+      "name": "fillRGBA",
+      "input": {
+        "0": ["position", "x"],  // Horizontal gradient
+        "1": null,
+        "2": null,
+        "3": null
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Motion Trails">
+    Use semi-transparent backgrounds to create trailing effects:
+    ```json
+    {
+      "name": "background",
+      "input": {
+        "0": ["r"],
+        "1": ["g"],
+        "2": ["b"],
+        "3": ["20"]  // Low alpha = slower fade
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Conditional Drawing">
+    Use blocks like `stopDraw` to conditionally halt drawing:
+    ```json
+    {
+      "name": "mouseIsPressed",
+      "output": { "0": [["2", "1", "0"]] }
+    },
+    {
+      "name": "stopDraw",
+      "input": { "0": ["2", "1", "0"] }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Canvas Coordinates
+
+Understanding the coordinate system:
+
+- Origin (0, 0) is at the **top-left** corner
+- X increases to the right
+- Y increases downward
+- Use `canvasSize` to get width and height
+
+<Tip>
+The `canvasCorners` variable in the line drawing example is a great pattern for getting all four corner positions.
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Interactive Graphics" icon="hand-pointer" href="/examples/interactive-graphics">
+    Add mouse and keyboard interactions to your drawings
+  </Card>
+  <Card title="Animations" icon="film" href="/examples/animations">
+    Create animated graphics and motion effects
+  </Card>
+  <Card title="Drawing Blocks Reference" icon="shapes" href="/reference/blocks/drawing">
+    Complete reference for all drawing blocks
+  </Card>
+  <Card title="Color Blocks Reference" icon="palette" href="/reference/blocks/color">
+    Learn about all color and styling options
+  </Card>
+</CardGroup>

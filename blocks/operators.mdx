@@ -1,0 +1,389 @@
+---
+title: Operator Blocks
+description: Blocks for mathematical operations like addition, subtraction, multiplication, and division
+---
+
+## Overview
+
+Operator blocks perform mathematical calculations on numeric values. They take numeric inputs and produce numeric outputs that can be used for positions, sizes, colors, or any other calculations.
+
+## Basic Arithmetic Operators
+
+### add
+
+Adds two numbers together.
+
+<ParamField path="a" type="number" required>
+  First number
+</ParamField>
+
+<ParamField path="b" type="number" required>
+  Second number
+</ParamField>
+
+**Output:**
+- Sum of a + b
+
+### Example Usage
+
+From the Bounce Ball example's boundaries function:
+
+```json
+{
+  "name": "add",
+  "source": "original",
+  "input": { 
+    "0": ["0", "0", "0"],  // number: 0
+    "1": ["0", "2", "0"]   // radius parameter
+  },
+  "output": { "0": [] }
+}
+```
+
+This calculates `0 + radius` to get the lower boundary for the bouncing ball.
+
+In context:
+
+```
+Function: boundaries (input: radius)
+  Line 0: [number: 0] -> minimum
+          [num: radius] -> radius value
+  Line 2: [add] <- 0, radius = lower bound (radius from edge)
+```
+
+### subtract
+
+Subtracts the second number from the first.
+
+<ParamField path="a" type="number" required>
+  Number to subtract from
+</ParamField>
+
+<ParamField path="b" type="number" required>
+  Number to subtract
+</ParamField>
+
+**Output:**
+- Difference a - b
+
+### Example Usage
+
+From the boundaries function:
+
+```json
+{
+  "name": "subtract",
+  "source": "original",
+  "input": { 
+    "0": ["0", "3", "0"],  // canvas width
+    "1": ["0", "2", "0"]   // radius
+  },
+  "output": { "0": [] }
+}
+```
+
+Calculates `width - radius` for the upper boundary:
+
+```
+Function: boundaries (input: radius)
+  Line 0: [canvasSize] -> width, height
+          [num: radius] -> radius value
+  Line 2: [subtract] <- width, radius = width - radius
+          [subtract] <- height, radius = height - radius
+  
+  Outputs: 
+    - Upper width bound: width - radius
+    - Upper height bound: height - radius
+```
+
+This ensures the ball stays within the canvas by accounting for its radius.
+
+### multiply
+
+Multiplies two numbers.
+
+<ParamField path="a" type="number" required>
+  First number
+</ParamField>
+
+<ParamField path="b" type="number" required>
+  Second number
+</ParamField>
+
+**Output:**
+- Product a × b
+
+### Example Usage
+
+```
+Line 0: [canvasSize] -> width
+        [number: 0.5] -> factor
+Line 1: [multiply] <- width, 0.5 = width/2 (center X)
+```
+
+Multiplication is useful for:
+- Calculating percentages: `value × 0.75 = 75% of value`
+- Finding centers: `width × 0.5 = center`
+- Scaling values: `size × 2 = double size`
+
+### divide
+
+Divides the first number by the second.
+
+<ParamField path="a" type="number" required>
+  Dividend (number to be divided)
+</ParamField>
+
+<ParamField path="b" type="number" required>
+  Divisor (number to divide by)
+</ParamField>
+
+**Output:**
+- Quotient a ÷ b
+
+### Example Usage
+
+```
+Line 0: [canvasSize] -> width, height
+        [number: 2] -> divisor
+Line 1: [divide] <- width, 2 = centerX
+        [divide] <- height, 2 = centerY
+```
+
+Division is commonly used for:
+- Finding centers: `width / 2`, `height / 2`
+- Distributing values: `totalWidth / numberOfColumns`  
+- Calculating ratios: `width / height = aspect ratio`
+
+<Warning>
+**Division by Zero**: Dividing by zero will cause an error. Make sure the divisor is never zero.
+</Warning>
+
+## Advanced Math Operations
+
+### random
+
+Generates a random number within a range.
+
+<ParamField path="trigger" type="boolean">
+  Optional trigger - when true, generates new random number
+</ParamField>
+
+<ParamField path="min" type="number" required>
+  Minimum value (inclusive)
+</ParamField>
+
+<ParamField path="max" type="number" required>
+  Maximum value (inclusive)
+</ParamField>
+
+**Output:**
+- Random number between min and max
+
+### Example Usage
+
+From the Line Drawing example's `randomRGB` function:
+
+```json
+{
+  "name": "random",
+  "source": "original",
+  "input": {
+    "0": ["0", "0", "0"],  // trigger: bool parameter
+    "1": ["0", "1", "0"],  // min: 170
+    "2": ["0", "2", "0"]   // max: 220
+  },
+  "output": { "0": [] }
+}
+```
+
+In context:
+
+```
+Function: randomRGB (input: trigger)
+  Line 0: [bool: trigger] -> when to randomize
+          [number: 170] -> min value
+          [number: 220] -> max value
+  Line 2: [random] <- trigger, 170, 220 -> R value
+          [random] <- trigger, 170, 220 -> G value
+          [random] <- trigger, 170, 220 -> B value
+
+Playground:
+  Line 0: [mouseIsPressed] -> true when mouse pressed
+  Line 1: [randomRGB] <- mouseIsPressed
+  Line 2: [strokeRGBA] <- random R, G, B values
+```
+
+Each time the mouse is pressed, new random RGB values between 170-220 are generated.
+
+From the Physics example's `random size` function:
+
+```
+Function: random size (input: trigger)  
+  Line 0: [number: 10] -> min size
+          [number: 40] -> max size
+  Line 2: [random] <- trigger, 10, 40 -> width
+          [random] <- trigger, 10, 40 -> height
+  
+Outputs: random width and height between 10-40
+```
+
+### round
+
+Rounds a number to the nearest integer (mentioned in CHANGELOG).
+
+<ParamField path="value" type="number" required>
+  Number to round
+</ParamField>
+
+**Output:**
+- Rounded integer value
+
+### Example Usage
+
+```
+Line 0: [number: 3.7] -> value
+Line 1: [round] <- 3.7 = 4
+
+Line 0: [number: 3.2] -> value  
+Line 1: [round] <- 3.2 = 3
+```
+
+Useful for:
+- Converting fractional pixels to whole pixels
+- Creating integer indices
+- Snapping values to whole numbers
+
+## Common Calculation Patterns
+
+### Pattern 1: Center Calculation
+
+```
+Line 0: [canvasSize] -> width, height
+        [number: 2] -> divisor
+Line 1: [divide] <- width, 2 = centerX
+        [divide] <- height, 2 = centerY
+Line 2: [circle] <- centerX, centerY, diameter
+```
+
+### Pattern 2: Boundary Calculation
+
+```
+Function: boundaries (input: radius)
+  // Lower bounds
+  [number: 0] -> min
+  [add] <- min, radius = lower bound
+  
+  // Upper bounds  
+  [canvasSize] -> width, height
+  [subtract] <- width, radius = upper X
+  [subtract] <- height, radius = upper Y
+```
+
+### Pattern 3: Percentage/Fraction
+
+```
+Line 0: [canvasSize] -> height
+        [number: 0.95] -> fraction (95%)
+Line 1: [multiply] <- height, 0.95 = 95% of height
+```
+
+or with division:
+
+```
+Line 0: [number: 100] -> total
+        [number: 4] -> parts
+Line 1: [divide] <- 100, 4 = 25 per part
+```
+
+### Pattern 4: Constrained Random
+
+```
+Line 0: [mouseIsPressed] -> trigger
+        [number: 170] -> min (avoid too dark)
+        [number: 220] -> max (avoid too bright)
+Line 1: [random] <- trigger, min, max
+        // Generates values in visually pleasing range
+```
+
+### Pattern 5: Incremental Animation
+
+```
+Variable: angle
+  [number: 0] -> initial angle
+  
+Playground:
+  Line 0: [angle] -> current angle
+          [number: 0.05] -> increment
+  Line 1: [add] <- angle, 0.05 -> new angle
+          // (Store back to angle - requires custom block)
+  Line 2: [rotate] <- new angle
+```
+
+## Operator Chaining
+
+Operators can be chained for complex calculations:
+
+```
+Line 0: [number: 100] -> a
+        [number: 50] -> b
+        [number: 2] -> c
+Line 1: [add] <- a, b = 150
+        [multiply] <- (a+b), c = 300
+Line 2: [divide] <- ((a+b)×c), 10 = 30
+```
+
+Order of operations is determined by block position (left to right, top to bottom), not mathematical precedence:
+
+```
+// This calculates: (2 + 3) × 4 = 20
+Line 0: [number: 2] -> a
+        [number: 3] -> b  
+Line 1: [add] <- a, b = 5
+        [number: 4] -> c
+Line 2: [multiply] <- (a+b), c = 20
+```
+
+<Warning>
+**Visual Order Matters**: Unlike text-based code where `2 + 3 * 4 = 14` (multiplication first), in b5 the operations execute in visual order (left to right, top to bottom). Use block positioning to control calculation order.
+</Warning>
+
+## Tips for Using Operators
+
+<Tip>
+**Use Variables for Reuse**: If you need the same calculation multiple times, store it in a variable:
+```
+Variable: centerX
+  [canvasSize] -> width
+  [divide: 2] -> width/2
+  
+Playground:
+  [centerX] -> reuse as needed
+```
+</Tip>
+
+<Tip>
+**Label Complex Calculations**: Use comment blocks to explain what calculations do:
+```
+Line 0: [comment: "Calculate 95% of canvas height for ground position"]
+Line 1: [canvasSize] -> height
+        [multiply: 0.95] -> ground Y
+```
+</Tip>
+
+<Tip>
+**Avoid Magic Numbers**: Instead of hardcoded values, use calculated values:
+```
+// Bad:
+[circle: 250, 150, 50]  // Magic numbers!
+
+// Good:
+[canvasSize] -> width, height
+[divide: 2] -> centerX, centerY
+[circle] <- centerX, centerY, 50
+```
+</Tip>
+
+<Info>
+**Numeric Precision**: b5 uses JavaScript's number type, which provides ~15-17 digits of precision. This is more than enough for graphics calculations.
+</Info>

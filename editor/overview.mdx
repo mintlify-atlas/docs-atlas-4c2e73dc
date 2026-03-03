@@ -1,0 +1,78 @@
+---
+title: Editor Overview
+description: Understanding the b5 visual programming interface
+---
+
+The b5 editor is a node-based visual programming environment designed to make coding easier, friendlier, and instantly responsive. Using blocks, nodes, and wires instead of lines of code, you can build creative coding projects with live feedback.
+
+## Interface Layout
+
+The editor consists of two main sections split by a draggable separator:
+
+<Steps>
+  <Step title="Factory (Left Panel)">
+    Design custom variables, functions, and objects that can be reused throughout your project. The Factory runs once before the Playground starts, similar to the `setup()` function in p5.js.
+  </Step>
+  
+  <Step title="Playground (Right Panel)">
+    The main code canvas that runs at 60 FPS by default, similar to the `draw()` function in p5.js. This is where your program executes from left to right, line by line.
+  </Step>
+</Steps>
+
+## Key Concepts
+
+### Sequential Execution
+
+Unlike most node-based visual programming languages (like Grasshopper or Max), b5 has a grid system where position matters. Blocks execute **from left to right, and line by line from top to bottom** - just like text-based code.
+
+### Live Coding
+
+Changes to your code are reflected immediately in the viewer. The Playground runs continuously at 60 frames per second, giving you instant visual feedback as you build.
+
+### Component Structure
+
+Your projects are built from three main components:
+
+- **Blocks**: Represent functions, values, or operations
+- **Nodes**: Input and output connection points on blocks
+- **Wires**: Connect nodes to pass data between blocks
+
+<Note>
+  Data flows from top (outputs) to bottom (inputs) via wires. One output can feed multiple inputs, but each input can only have one data source.
+</Note>
+
+## Resizable Panels
+
+The separator between Factory and Playground can be dragged to resize the panels. This lets you adjust the workspace based on whether you're:
+
+- Defining custom blocks in the Factory
+- Building your main program in the Playground
+- Focusing on the live preview in the Viewer
+
+## Folding the Factory
+
+Click the fold icon to collapse the Factory panel entirely, giving you more space for the Playground. Click again to restore the Factory to its previous size.
+
+<Tip>
+  Your panel sizes are automatically saved in the session, so they'll be preserved when you fold and unfold the Factory.
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Playground" icon="grid-2" href="/editor/playground">
+    Learn about the main code canvas that runs at 60 FPS
+  </Card>
+  
+  <Card title="Factory" icon="flask" href="/editor/factory">
+    Create custom variables, functions, and objects
+  </Card>
+  
+  <Card title="Block Search" icon="magnifying-glass" href="/editor/block-search">
+    Add blocks quickly with double-click search
+  </Card>
+  
+  <Card title="Viewer" icon="eye" href="/editor/viewer">
+    Control your live preview canvas
+  </Card>
+</CardGroup>

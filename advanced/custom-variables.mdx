@@ -1,0 +1,179 @@
+---
+title: 'Custom Variables'
+description: 'Learn how to create custom variables in the Factory to store values and reuse them across your b5 project'
+icon: 'variable'
+---
+
+## Overview
+
+Variables in b5 work like the **setup** function in p5.js - they run once before your Playground canvas starts executing. Custom variables let you define reusable values that appear as blocks throughout your project.
+
+<Note>
+Any change made to a variable will re-initiate the running sketch, as variables are executed during the setup phase.
+</Note>
+
+## Creating a Variable
+
+<Steps>
+  <Step title="Open the Factory">
+    Navigate to the Factory section in the b5 editor. You'll see three tabs: **variable**, **function**, and **object**.
+  </Step>
+  
+  <Step title="Select the Variable Tab">
+    Click on the **variable** tab to view your custom variables section.
+  </Step>
+  
+  <Step title="Add a New Variable">
+    Click the **new** button at the bottom of the variable content area to create a new variable section.
+  </Step>
+  
+  <Step title="Name Your Variable">
+    Click the rename icon (pencil) in the section controls to give your variable a meaningful name.
+    
+    <Warning>
+    Variable names must:
+    - Contain only letters and numbers (no spaces or special characters)
+    - Not conflict with existing block names
+    - Be between 1 and 16 characters long
+    </Warning>
+  </Step>
+  
+  <Step title="Build the Variable Logic">
+    Use the code canvas within the variable section to define what value your variable will output. The variable canvas supports up to 3 lines and 3 blocks per line.
+  </Step>
+</Steps>
+
+## Variable Block Characteristics
+
+- **No Inputs**: Rendered variable blocks don't take any inputs
+- **Static Outputs**: They provide consistent output values
+- **Single Output Node**: Variables have one output node that can connect to multiple blocks
+- **Run Once**: Execute only during initialization, before the Playground loop starts
+
+## Example: Canvas Variable
+
+Here's a real example from the b5 source code that creates a canvas with specific dimensions:
+
+<CodeGroup>
+```json Variable Structure
+{
+  "name": "cnv",
+  "type": "variable",
+  "lineStyles": {},
+  "blocks": {
+    "0": {
+      "0": {
+        "name": "number",
+        "source": "original",
+        "uuid": "363fd6b1-1b3b-4149-945a-cd79b17e492a",
+        "inlineData": [500],
+        "output": { "0": [["1", "0", "0"]] }
+      },
+      "1": {
+        "name": "numberSlider",
+        "source": "original",
+        "uuid": "1c1ad91c-468a-45c0-9798-4185dc71ee77",
+        "inlineData": [300, 0, 600, 100],
+        "output": { "0": [["1", "0", "1"]] }
+      }
+    },
+    "1": {
+      "0": {
+        "name": "createCanvas",
+        "source": "original",
+        "uuid": "53d3acfc-f9c2-469d-bc83-73e2f16ab8d3",
+        "input": {
+          "0": ["0", "0", "0"],
+          "1": ["0", "1", "0"],
+          "2": null
+        },
+        "output": { "0": [] }
+      }
+    }
+  }
+}
+```
+
+```text Visual Representation
+Line 0:  [number: 500] → ┐
+         [numberSlider] → ┤
+                         │
+Line 1:  [createCanvas] ←┘
+         (width: 500, height: slider value)
+```
+</CodeGroup>
+
+This creates a `cnv` variable block that:
+1. Sets the canvas width to 500 pixels
+2. Uses a slider (0-600 range) for adjustable height
+3. Calls `createCanvas` with these dimensions
+4. Outputs the canvas object for use in Playground
+
+## Using Variables in Playground
+
+Once created, your custom variable blocks can be used in two ways:
+
+### Method 1: Block Search
+Double-click any empty block room in the Playground and search for your variable name.
+
+### Method 2: Drag and Drop
+Drag the preview block directly from the Factory into your Playground canvas.
+
+<Note>
+The preview block appears on the right side of each variable section in the Factory, showing exactly how your variable will look when used.
+</Note>
+
+## Variable Canvas Properties
+
+| Property | Value | Description |
+|----------|-------|-------------|
+| Max Lines | 3 | Maximum number of lines in the variable canvas |
+| Max Blocks per Line | 3 | Maximum blocks that can fit in one line |
+| Execution | Once | Runs only during initialization |
+| Resizable | Yes | Drag the bottom bar to adjust section height |
+
+## Managing Variables
+
+### Renaming
+1. Click the pencil icon in the section controls
+2. Edit the name directly in the preview block
+3. Click outside or press Enter to save
+
+### Deleting
+Click the trash icon in the section controls to remove the variable and all its instances from your project.
+
+<Warning>
+Deleting a variable will remove all instances of that variable block from your Playground. This action cannot be undone.
+</Warning>
+
+## Best Practices
+
+1. **Use descriptive names**: Choose names that clearly indicate what the variable stores (e.g., `circleRadius`, `bgColor`)
+2. **Keep it simple**: Variables are best for single values or simple operations
+3. **Group related setup**: Put related initialization logic in the same variable (like canvas setup)
+4. **Test before using**: Verify your variable works correctly in the Factory before using it extensively in Playground
+
+## Troubleshooting
+
+**Variable not appearing in block search?**
+- Ensure the variable name is valid (no special characters)
+- Check that it doesn't conflict with built-in block names
+
+**Sketch restarts when editing variable?**
+- This is expected behavior - variables run during setup, so changes require reinitialization
+
+**Output not what you expected?**
+- Check the wire connections in your variable canvas
+- Ensure the final block in your variable has an output node connected
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Custom Functions" icon="function" href="/advanced/custom-functions">
+    Learn how to create reusable functions with inputs and outputs
+  </Card>
+  
+  <Card title="Save & Load Projects" icon="floppy-disk" href="/advanced/save-load">
+    Understand the .b5.json file format and how to save your work
+  </Card>
+</CardGroup>

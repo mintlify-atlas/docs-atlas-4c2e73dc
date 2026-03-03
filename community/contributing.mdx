@@ -1,0 +1,305 @@
+---
+title: Contributing
+description: How to contribute to the b5 project
+---
+
+b5 is an early-stage work-in-progress project, and all kinds of contributions are welcome! This guide will help you get started with contributing to the project.
+
+## Ways to Contribute
+
+There are many ways to contribute to b5:
+
+- Report bugs and issues
+- Suggest new features and improvements
+- Improve documentation
+- Fix bugs and implement features
+- Create and share example projects
+- Improve UI/UX design
+- Add new blocks and functionality
+- Write tests
+
+## Getting Started
+
+<Steps>
+  <Step title="Read the documentation">
+    Familiarize yourself with the project:
+    - [Development Setup](/community/development-setup) - Set up your local environment
+    - [Architecture](/community/architecture) - Understand the codebase structure
+    - [Code of Conduct](/community/code-of-conduct) - Review community guidelines
+  </Step>
+
+  <Step title="Set up your development environment">
+    Follow the [Development Setup](/community/development-setup) guide to clone and run the project locally.
+  </Step>
+
+  <Step title="Find something to work on">
+    Look for issues labeled `good first issue` or `help wanted` in the [GitHub repository](https://github.com/peilingjiang/b5/issues).
+  </Step>
+</Steps>
+
+## Reporting Issues
+
+Found a bug or have a feature request?
+
+### From the Editor
+
+Click the link at the top left corner of the editor to report issues directly from the application.
+
+### From GitHub
+
+Create a new issue at [github.com/peilingjiang/b5/issues/new](https://github.com/peilingjiang/b5/issues/new)
+
+### What to Include
+
+When reporting issues, please include:
+
+- **Clear description** of the problem or suggestion
+- **Steps to reproduce** (for bugs)
+- **Expected behavior** vs actual behavior
+- **Screenshots or recordings** if applicable
+- **Browser and OS** information
+- **Error messages** from the browser console
+
+<Note>
+  For bugs, try to create a minimal reproduction case. This helps maintainers understand and fix the issue faster.
+</Note>
+
+## Making Changes
+
+### Workflow
+
+<Steps>
+  <Step title="Fork and clone">
+    ```bash
+    # Fork the repository on GitHub, then clone your fork
+    git clone --recurse-submodules https://github.com/YOUR_USERNAME/b5.git
+    cd b5
+    bun run setup
+    ```
+  </Step>
+
+  <Step title="Create a branch">
+    ```bash
+    # Create a new branch for your feature or fix
+    git checkout -b feature/your-feature-name
+    # or
+    git checkout -b fix/issue-description
+    ```
+  </Step>
+
+  <Step title="Make your changes">
+    - Write your code
+    - Test your changes thoroughly
+    - Ensure existing functionality still works
+    - Add tests if applicable
+  </Step>
+
+  <Step title="Commit your changes">
+    Code will be automatically formatted on commit using Prettier.
+
+    ```bash
+    git add .
+    git commit -m "Description of your changes"
+    ```
+
+    Write clear, descriptive commit messages.
+  </Step>
+
+  <Step title="Push and create a pull request">
+    ```bash
+    git push origin feature/your-feature-name
+    ```
+
+    Then create a pull request on GitHub.
+  </Step>
+</Steps>
+
+### Code Style
+
+<Note>
+  Code formatting is handled automatically! The project uses Prettier with pre-commit hooks.
+</Note>
+
+When you commit, the following happens automatically:
+
+1. `simple-git-hooks` triggers on commit
+2. `lint-staged` runs on staged files
+3. Prettier formats `*.{js,jsx,ts,tsx,json,md,html,css}` files
+
+Manual formatting (if needed):
+
+```bash
+bun run format
+```
+
+### Pull Request Guidelines
+
+When creating a pull request:
+
+- **Title**: Clear and descriptive (e.g., "Add log block for inline logging", "Fix wire rendering bug")
+- **Description**: Explain what changes you made and why
+- **Reference issues**: Link related issues (e.g., "Fixes #123")
+- **Screenshots**: Include before/after screenshots for UI changes
+- **Testing**: Describe how you tested your changes
+
+## Development Best Practices
+
+### Testing Your Changes
+
+<Warning>
+  Always test your changes thoroughly before submitting a pull request.
+</Warning>
+
+1. **Run the development server**:
+   ```bash
+   bun start
+   ```
+
+2. **Test in the browser**:
+   - Test on `localhost:3000`
+   - Try different scenarios and edge cases
+   - Test with various example files
+
+3. **Run tests** (if available):
+   ```bash
+   bun test
+   ```
+
+4. **Test the production build**:
+   ```bash
+   bun run build
+   ```
+
+### Working with Submodules
+
+If your changes involve the b5.js submodule:
+
+```bash
+# Navigate to submodule
+cd src/b5.js
+
+# Make changes and commit
+git checkout -b your-branch
+# ... make changes ...
+git commit -m "Your changes"
+git push
+
+# Return to main project
+cd ../..
+
+# Update submodule reference in main project
+git add src/b5.js
+git commit -m "Update b5.js submodule"
+```
+
+<Note>
+  b5.js is a separate repository. You may need to create a pull request there as well.
+</Note>
+
+## Project Roadmap
+
+Current development priorities and to-dos:
+
+### b5 Core
+
+- Cover most original p5.js functionalities
+  - Bring videos, images, sounds into the canvas
+  - `log` block for inline logging (instead of console)
+- `b5Iterate` object for streaming multiple data through one wire
+- Error system with type checking and visual feedback
+- Output shape objects from drawing blocks
+- Custom object creation system
+- Integration with more libraries
+- Posenet library workflow
+
+### Interface
+
+- User preferences
+- Quick start guide
+- File and section sharing
+- Quick preview embed for websites
+- Multi-language support
+- Multi-block selection and operations
+- Undo/redo (`Cmd/Ctrl + Z`)
+- Copy/paste (`Cmd/Ctrl + C/V`)
+- Open viewer in separate tab
+- Accessibility improvements
+
+## Sharing Example Projects
+
+Created something cool with b5? Share it!
+
+1. **Save your project**: `Cmd/Ctrl + S` to download as JSON
+2. **Create an issue** or discussion with:
+   - Description of your project
+   - Screenshot or recording
+   - The JSON file
+3. Your project may be added to the example files in the editor!
+
+Example files are located in `src/examples/` and can be loaded from the Files icon in the editor.
+
+## Getting Help
+
+### Questions and Discussions
+
+- **GitHub Discussions**: Ask questions, share ideas, get feedback
+- **GitHub Issues**: For bug reports and feature requests
+- **Editor feedback link**: Top left corner of the editor
+
+### Code Review
+
+When you submit a pull request:
+
+- Maintainers will review your code
+- They may request changes or ask questions
+- Be responsive to feedback
+- Don't take criticism personally - it's about improving the code!
+
+## Recognition
+
+Contributors are valued and recognized:
+
+- All contributors are acknowledged in the project
+- Significant contributions may be highlighted
+- Building a collaborative and inclusive community
+
+## No Contribution is Too Small
+
+Even small contributions make a difference:
+
+- Fixing typos in documentation
+- Improving error messages
+- Adding code comments
+- Reporting bugs
+- Suggesting improvements
+
+Every contribution helps make b5 better!
+
+## Academic Citations
+
+If you use b5 in academic work, please cite:
+
+> Peiling Jiang. 2023. Positional Control in Node-Based Programming. In Extended Abstracts of the 2023 CHI Conference on Human Factors in Computing Systems (CHI EA '23), April 23–28, 2023, Hamburg, Germany. ACM, New York, NY, USA, 7 pages. https://doi.org/10.1145/3544549.3585878
+
+```bibtex
+@inproceedings{jiang2023node,
+  author = {Jiang, Peiling},
+  title = {Positional Control in Node-Based Programming},
+  year = {2023},
+  isbn = {9781450394222},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3544549.3585878},
+  doi = {10.1145/3544549.3585878},
+  booktitle = {Extended Abstracts of the 2023 CHI Conference on Human Factors in Computing Systems},
+  articleno = {231},
+  numpages = {7},
+  keywords = {Creative coding, Authoring environment, Visual programming},
+  location = {Hamburg, Germany},
+  series = {CHI EA '23}
+}
+```
+
+## Thank You!
+
+Thank you for contributing to b5! Your involvement helps make creative coding more accessible, friendlier, and more fun for everyone.

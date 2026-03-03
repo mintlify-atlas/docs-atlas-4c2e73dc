@@ -1,0 +1,220 @@
+---
+title: Shape Blocks
+description: Blocks for drawing geometric shapes on the canvas
+---
+
+## Overview
+
+Shape blocks are used to draw geometric primitives on the canvas. These blocks are typically used in the Playground section and are affected by effect blocks like `fill`, `stroke`, and transformations.
+
+## circle
+
+Draws a circle on the canvas.
+
+<ParamField path="x" type="number" required>
+  X-coordinate of the circle's center
+</ParamField>
+
+<ParamField path="y" type="number" required>
+  Y-coordinate of the circle's center
+</ParamField>
+
+<ParamField path="diameter" type="number" required>
+  Diameter of the circle in pixels
+</ParamField>
+
+### Example Usage
+
+From the Bounce Ball example:
+
+```json
+{
+  "name": "circle",
+  "source": "original",
+  "input": {
+    "0": ["3", "1", "0"],  // x position from bounce
+    "1": ["3", "3", "0"],  // y position from bounce
+    "2": ["0", "1", "0"]   // radius from slider
+  }
+}
+```
+
+In context:
+
+```
+Line 5:
+  [strokePicker: #4a90e2ff]  // Set stroke color
+  [fillRGBA] <-- x, y mapped to R, G values
+  [circle] <-- x, y from bounce, radius from slider
+```
+
+The circle's position is controlled by the `bounce` blocks, and its color is set by the effect blocks above it.
+
+### Basic Circle Example
+
+```
+Playground:
+  Line 0: [numberSlider: 70, 0-100] -> radius
+  Line 1: [fillPicker: #bd10e0ff]
+          [circle] <- x: canvas width/2, y: null (defaults), radius: from slider
+```
+
+## rect
+
+Draws a rectangle on the canvas.
+
+<ParamField path="x" type="number" required>
+  X-coordinate of the rectangle's top-left corner
+</ParamField>
+
+<ParamField path="y" type="number" required>
+  Y-coordinate of the rectangle's top-left corner
+</ParamField>
+
+<ParamField path="width" type="number" required>
+  Width of the rectangle
+</ParamField>
+
+<ParamField path="height" type="number">
+  Height of the rectangle (optional, defaults to width for square)
+</ParamField>
+
+## lineXY
+
+Draws a straight line between two points.
+
+<ParamField path="x1" type="number" required>
+  X-coordinate of the first point
+</ParamField>
+
+<ParamField path="y1" type="number" required>
+  Y-coordinate of the first point
+</ParamField>
+
+<ParamField path="x2" type="number" required>
+  X-coordinate of the second point
+</ParamField>
+
+<ParamField path="y2" type="number" required>
+  Y-coordinate of the second point
+</ParamField>
+
+### Example Usage
+
+From the Line Drawing example:
+
+```json
+{
+  "name": "lineXY",
+  "source": "original",
+  "input": {
+    "0": ["1", "3", "0"],  // x1: 0 (top-left corner)
+    "1": ["1", "3", "0"],  // y1: 0
+    "2": ["1", "4", "0"],  // x2: mouseX
+    "3": ["1", "4", "1"]   // y2: mouseY
+  }
+}
+```
+
+This example draws lines from canvas corners to the mouse position:
+
+```
+Line 4:
+  [strokeRGBA] <-- random RGB colors
+  [stopDraw] <-- if mouse not pressed
+  [lineXY] <-- from (0, 0) to (mouseX, mouseY)
+  [lineXY] <-- from (width, height) to (mouseX, mouseY)
+```
+
+When the mouse is pressed, two lines are drawn creating a dynamic X pattern following the cursor.
+
+## Effect Blocks for Shapes
+
+Shapes are affected by color and transformation effect blocks placed before them in the execution order:
+
+### Color Effects
+
+```
+[fill: color] -- affects shapes after it
+[stroke: color] -- affects shapes after it
+[circle] <-- uses fill and stroke from above
+```
+
+### Transformation Effects
+
+```
+[translate: x, y] -- moves origin
+[rotate: angle] -- rotates coordinate system  
+[scale: factor] -- scales coordinate system
+[circle: 0, 0, 50] <-- drawn at transformed position
+```
+
+## Advanced Shape Patterns
+
+### Pattern 1: Dynamic Position
+
+Use `mouse` or `bounce` blocks to animate shape positions:
+
+```
+Line 0: [mouse] -> x, y outputs
+Line 1: [circle] <- mouseX, mouseY, fixed diameter
+```
+
+### Pattern 2: Mapped Colors
+
+Map position to color values:
+
+```
+Line 0: [bounce] -> x, y positions
+Line 1: [fillRGBA] <- x as red, y as green, blue, alpha
+        [circle] <- x, y, radius
+```
+
+This creates a circle whose color changes based on its position.
+
+### Pattern 3: Conditional Drawing
+
+Use `stopDraw` to control when shapes are drawn:
+
+```
+Line 0: [mouseIsPressed] -> boolean
+Line 1: [strokeRGBA] <- colors
+        [stopDraw] <- if NOT mouseIsPressed, stop here
+Line 2: [lineXY] <- only draws if mouse is pressed
+```
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="Centered Circle">
+    ```
+    [canvasSize] -> width, height
+    [divide: width, 2] -> centerX
+    [divide: height, 2] -> centerY
+    [circle] <- centerX, centerY, radius
+    ```
+  </Accordion>
+
+  <Accordion title="Grid of Shapes">
+    Use custom functions with loops to create shape grids (requires custom block creation in Factory).
+  </Accordion>
+
+  <Accordion title="Interactive Drawing">
+    ```
+    [mouseIsPressed] -> condition
+    [mouse] -> x, y
+    [circle] <- mouseX, mouseY, small diameter
+    ```
+    Creates a simple paint brush effect.
+  </Accordion>
+</AccordionGroup>
+
+## Performance Tips
+
+<Warning>
+**Frame Rate**: Drawing many shapes each frame can impact performance. The Playground runs at 60 FPS by default. Use `frameRate` block to adjust if needed.
+</Warning>
+
+<Tip>
+**Effect Block Range**: Remember that effect blocks like `fill` and `stroke` affect all shapes that follow them on the same line or subsequent lines, until another effect block changes them.
+</Tip>

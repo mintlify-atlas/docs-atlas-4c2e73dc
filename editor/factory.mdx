@@ -1,0 +1,255 @@
+---
+title: Factory
+description: Create custom variables, functions, and objects
+---
+
+The Factory is where you design and construct your own customized blocks. Like the `setup()` function in p5.js, definitions in the Factory run once before the Playground starts executing.
+
+## Factory Tabs
+
+The Factory is organized into three tabs for different types of custom blocks:
+
+<Tabs>
+  <Tab title="Variable">
+    Define reusable values that are set once and used throughout your program.
+    
+    **Properties:**
+    - Runs once at initialization
+    - No input nodes
+    - Static output value
+    - Changes require restarting the sketch
+    
+    **Canvas size:** 3 lines × 3 blocks per line
+  </Tab>
+  
+  <Tab title="Function">
+    Create custom functions that can be called multiple times with different inputs.
+    
+    **Properties:**
+    - Not executed until used in Playground
+    - Can have multiple inputs
+    - Returns computed values
+    - Reusable logic
+    
+    **Canvas size:** 199 lines × 19 blocks per line
+  </Tab>
+  
+  <Tab title="Object">
+    Define custom objects with properties and methods (work in progress).
+    
+    **Status:** Currently locked and under development
+    
+    **Canvas size:** 49 lines × 9 blocks per line
+  </Tab>
+</Tabs>
+
+<Note>
+  Each tab can contain multiple custom blocks of that type. Click the tab name to switch between them.
+</Note>
+
+## Creating Custom Blocks
+
+<Steps>
+  <Step title="Select a Tab">
+    Choose the type of block you want to create: variable, function, or object.
+  </Step>
+  
+  <Step title="Click 'new'">
+    Click the **new** button at the bottom of the tab content to create a new section.
+  </Step>
+  
+  <Step title="Name Your Block">
+    Click the rename icon (pencil) in the section controls to give your block a meaningful name.
+  </Step>
+  
+  <Step title="Build the Logic">
+    Add blocks to the code canvas to define what your custom block does.
+  </Step>
+</Steps>
+
+## Block Preview
+
+Each custom block in the Factory displays a live preview showing:
+
+- The block's name
+- Its visual appearance
+- Input and output nodes
+
+<Tip>
+  You can drag the preview block directly into the Playground to use it, or add it through block search.
+</Tip>
+
+## Section Controls
+
+Each Factory section has controls for managing the custom block:
+
+### Rename
+
+Click the **pencil icon** to edit the block name:
+
+- Click to enter edit mode
+- Type the new name
+- Click away to finish
+- Invalid names are rejected
+
+<Warning>
+  Block names must be unique within each category. Renaming updates all instances in the Playground.
+</Warning>
+
+### Delete
+
+Click the **trash icon** to remove the custom block:
+
+- Deletes the block definition
+- Removes the block from the Factory
+- Updates all instances in the Playground
+
+### Resize
+
+Drag the **bottom edge** of any section to resize it:
+
+- Larger sections give more workspace
+- Useful for complex functions
+- Height is saved with the project
+
+## Using Custom Blocks
+
+Once created, custom blocks can be used in the Playground:
+
+<Tabs>
+  <Tab title="Via Search">
+    Double-click an empty block room and search for your custom block name. Custom blocks appear in search results alongside predefined blocks.
+  </Tab>
+  
+  <Tab title="Via Drag">
+    Click and drag the preview block from the Factory directly into the Playground. This is faster when the Factory is visible.
+  </Tab>
+</Tabs>
+
+## How Variables Work
+
+<CodeGroup>
+```yaml Example: Color Variable
+Variable Name: myColor
+Blocks:
+  - color picker → #FF6B9D
+Output:
+  - Static color value
+```
+</CodeGroup>
+
+Variables:
+
+- Execute once at program start
+- Have no input nodes
+- Provide a constant output
+- Changing them restarts the entire sketch
+
+<Note>
+  Variables are perfect for constants like colors, sizes, or initial positions that won't change during execution.
+</Note>
+
+## How Functions Work
+
+<CodeGroup>
+```yaml Example: Circle Grid Function
+Function Name: drawGrid
+Inputs:
+  - rows (number)
+  - cols (number)
+Blocks:
+  - nested loops
+  - ellipse drawing
+  - spacing calculations
+Output:
+  - none (draws to canvas)
+```
+</CodeGroup>
+
+Functions:
+
+- Only execute when called from Playground
+- Can accept multiple parameters
+- Can return values through output nodes
+- Can contain complex logic
+
+<Tip>
+  Use functions to encapsulate repeated logic or complex operations that you need to perform multiple times.
+</Tip>
+
+## Updates and Re-initialization
+
+When you modify the Factory:
+
+### Variable Changes
+
+- **Effect**: Restarts the entire sketch
+- **Reason**: Variables initialize before Playground execution
+- **Use case**: Adjusting initial parameters
+
+### Function Changes
+
+- **Effect**: Updates function definition immediately
+- **Reason**: Functions execute on-demand
+- **Use case**: Tweaking logic while running
+
+## Factory Panel Management
+
+The Factory panel can be:
+
+### Resized
+
+Drag the vertical separator to adjust the Factory width relative to the Playground.
+
+### Folded
+
+Click the fold icon to collapse the Factory:
+
+- Gives maximum space to Playground
+- Factory remains accessible but hidden
+- Previous width is restored when unfolded
+
+<Tip>
+  Your panel configuration is saved to session storage, so it persists across folding and unfolding.
+</Tip>
+
+## Section Organization
+
+Each tab can contain multiple sections:
+
+- Sections are listed vertically
+- Each has its own resizable code canvas
+- All sections share the same tab space
+- Scroll to access sections below the fold
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Descriptive Names" icon="tag">
+    Use clear, descriptive names for custom blocks so they're easy to find in search.
+  </Card>
+  
+  <Card title="Single Responsibility" icon="bullseye">
+    Keep each custom block focused on one task for better reusability.
+  </Card>
+  
+  <Card title="Test in Playground" icon="vial">
+    Test custom blocks in the Playground to verify they work as expected.
+  </Card>
+  
+  <Card title="Document with Comments" icon="message">
+    Use comment blocks to explain complex logic in your custom blocks.
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Playground" icon="grid-2" href="/editor/playground">
+    Use your custom blocks in the main canvas
+  </Card>
+  
+  <Card title="Block Search" icon="magnifying-glass" href="/editor/block-search">
+    Learn how to add custom blocks quickly
+  </Card>
+</CardGroup>

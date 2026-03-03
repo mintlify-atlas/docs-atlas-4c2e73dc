@@ -1,0 +1,388 @@
+---
+title: Data Flow
+description: How data moves through the b5 system from inputs to outputs
+---
+
+Data flow in b5 follows clear, visual paths through wires connecting blocks. Understanding how data moves through your program is essential for building complex interactive projects.
+
+## Data Flow Fundamentals
+
+<Note>
+  Data flows **from top to bottom** through wires, connecting output nodes (bottom of blocks) to input nodes (top of blocks).
+</Note>
+
+This creates a visual representation of data dependencies that's immediately clear from looking at your program.
+
+## The Flow Direction
+
+```
+     [Block A]
+         ↓ output node
+      ┌──┴──┐
+      │ wire │
+      └──┬──┘
+         ↓ input node
+     [Block B]
+```
+
+Data travels:
+1. Generated or computed in Block A
+2. Exits through Block A's output node
+3. Travels through the wire
+4. Enters Block B's input node
+5. Used by Block B in its operation
+
+## Input and Output Structure
+
+From the source code, blocks store their connections in specific data structures:
+
+### Input Data Structure
+
+```javascript
+// From blockRenderer.js comments (lines 42-48)
+{
+  '0': 'number',
+  '1': 'numberSlider',
+}
+```
+
+Input connections are stored as:
+```javascript
+"input": {
+  "0": ["3", "1", "0"],  // [row, column, outputNodeIndex]
+  "1": ["2", "5", "1"],
+  "2": null              // No connection
+}
+```
+
+Each input node either:
+- Has an array `[y, x, nodeIndex]` pointing to the source block and output node
+- Is `null` if not connected
+
+<Warning>
+  Input nodes can only have **one** connection. Connecting a new wire to an input node replaces any existing connection.
+</Warning>
+
+### Output Data Structure
+
+```javascript
+"output": {
+  "0": [
+    ["5", "3", "2"],  // Connected to block at row 5, col 3, input 2
+    ["1", "2", "0"]   // Also connected to block at row 1, col 2, input 0
+  ],
+  "1": []  // No connections
+}
+```
+
+Output nodes store an **array of arrays**:
+- Each output node can connect to **multiple** input nodes
+- Empty array `[]` means no connections
+- Each connection is `[y, x, inputNodeIndex]`
+
+<Tip>
+  One output can feed data to many inputs, enabling you to reuse computed values across multiple blocks.
+</Tip>
+
+## Data Flow Example: Bounce Ball
+
+Let's trace data flow in the example bounce ball program:
+
+### Step 1: Create the Radius Value
+
+```json
+{
+  "0": {
+    "1": {
+      "name": "numberSlider",
+      "inlineData": [40, 0, 50, 5],
+      "output": {
+        "0": [
+          ["5", "3", "2"],  // Flows to circle radius
+          ["1", "2", "0"]   // Flows to boundaries function
+        ]
+      }
+    }
+  }
+}
+```
+
+The slider at Row 0, Column 1:
+- Generates a number value (40, adjustable 0-50)
+- Outputs to **two destinations**:
+  - Row 5, Column 3, Input 2 (circle's radius)
+  - Row 1, Column 2, Input 0 (boundaries function)
+
+### Step 2: Calculate Boundaries
+
+```json
+{
+  "1": {
+    "2": {
+      "name": "boundaries",
+      "input": { "0": ["0", "1", "0"] },
+      "output": {
+        "0": [["3", "1", "0"], ["3", "3", "0"]],  // Lower bounds
+        "1": [["3", "1", "1"]],                    // Upper x bound
+        "2": [["3", "3", "1"]]                     // Upper y bound  
+      }
+    }
+  }
+}
+```
+
+The custom `boundaries` function:
+- **Receives** radius from Row 0, Column 1
+- **Calculates** boundary values
+- **Outputs** three values:
+  - Output 0: Lower boundary (used by two bounce blocks)
+  - Output 1: Upper x boundary
+  - Output 2: Upper y boundary
+
+### Step 3: Bounce Physics
+
+```json
+{
+  "3": {
+    "1": {
+      "name": "bounce",
+      "input": {
+        "0": ["1", "2", "0"],  // Lower bound
+        "1": ["1", "2", "1"],  // Upper bound
+        "2": ["1", "3", "0"]   // Step size
+      },
+      "output": {
+        "0": [["5", "3", "0"], ["5", "2", "0"]]
+      }
+    }
+  }
+}
+```
+
+The bounce block:
+- **Receives** three inputs (bounds and step)
+- **Computes** bouncing position
+- **Outputs** to circle x-position AND fill red value
+
+### Complete Data Flow Diagram
+
+```
+[numberSlider (radius: 40)]
+         │
+         ├──────────────────────────────┐
+         ↓                              ↓
+  [boundaries function]          [circle (input 2)]
+         │
+    ┌────┼────┐
+    ↓    ↓    ↓
+  out0 out1 out2
+    │    │    │
+    ↓    │    │
+[bounce x]   │
+    │        │
+    ├────────┤
+    ↓        ↓
+[circle x] [circle y]
+```
+
+## Node Offset and Wire Rendering
+
+The system tracks the visual position of nodes for rendering wires. From `codeBlocks.js:545-568`:
+
+```javascript
+collectNodesOffset = (x, y, data, ref = null) => {
+  /*
+  > data
+  {
+    input: [[x1, y1], [x2, y2]],
+    output: [],
+  }
+  */
+  this.setState(prevState => {
+    let newState = JSON.parse(JSON.stringify(prevState))
+    
+    if (!newState.nodesOffset[y]) newState.nodesOffset[y] = {}
+    newState.nodesOffset[y][x] = data
+    
+    return newState
+  })
+}
+```
+
+This allows the `WireRenderer` component to draw wires between the actual pixel positions of connected nodes.
+
+## Type Information in Data Flow
+
+Node types determine what data can flow through connections. From `blockRenderer.js:333-342`:
+
+```javascript
+connectType={
+  input[i] !== null
+    ? _getParentBlockInBook(inputBlocks[i])
+      ? _getParentBlockInBook(inputBlocks[i]).outputNodes[
+          input[i][2]
+        ].type[0]
+      : null
+    : null
+}
+```
+
+When connected:
+- Input nodes display the **type** of data they're receiving
+- Wire color reflects the data type
+- Type information comes from the parent block's output node definition
+
+<Info>
+  Type checking helps ensure you're connecting compatible data. Visual feedback through node colors makes type mismatches obvious.
+</Info>
+
+## Data Flow Patterns
+
+### Fan-Out Pattern
+
+One output feeding multiple inputs:
+
+```
+    [Source]
+        ↓
+    ┌───┼───┐
+    ↓   ↓   ↓
+  [A] [B] [C]
+```
+
+Use when:
+- The same value is needed in multiple places
+- You want to reuse a calculation
+- Multiple operations depend on one input
+
+### Chain Pattern
+
+Sequential data transformation:
+
+```
+[Input] → [Process A] → [Process B] → [Output]
+```
+
+Use when:
+- Data needs multiple transformation steps
+- Building complex calculations from simple operations
+- Creating processing pipelines
+
+### Merge Pattern
+
+Multiple inputs to one operation:
+
+```
+[A] ──┐
+      ├──> [Combine]
+[B] ──┘
+```
+
+Use when:
+- Combining multiple values
+- Mathematical operations (add, multiply, etc.)
+- Functions with multiple parameters
+
+## Inline Data vs. Wired Data
+
+Blocks can receive data in two ways:
+
+### Inline Data
+
+```javascript
+"inlineData": [40, 0, 50, 5]  // Slider: value, min, max, step
+```
+
+Data stored **inside the block**:
+- Set through direct user input
+- Visible on the block itself
+- No wire connections needed
+
+### Wired Data
+
+```javascript
+"input": { "0": ["3", "1", "0"] }
+```
+
+Data received **through wire connections**:
+- Comes from other blocks' outputs
+- Dynamic and recomputed each frame
+- Creates dependencies between blocks
+
+<Tip>
+  Many blocks support **both** inline and wired data. For example, sliders can have inline min/max values OR receive them through wired inputs for dynamic ranges.
+</Tip>
+
+## Debugging Data Flow
+
+### Visual Inspection
+
+1. **Follow the wires** - Visual connections show data paths
+2. **Check node connections** - Hover over nodes to see what they expect/provide
+3. **Select blocks** - Focus highlights show relationships
+
+### Connection Validation
+
+From `codeBlocks.js:267-276`, the system validates connections:
+
+```javascript
+// Cannot connect to same node type
+// Cannot connect to child with smaller y index or parent with larger
+if (
+  ioEnd === startNodeType ||
+  (ioEnd === 'input' && endBlockInd[0] <= startBlockInd[0]) ||
+  (ioEnd === 'output' && endBlockInd[0] >= startBlockInd[0])
+)
+  return
+```
+
+This ensures:
+- Data flows in the correct direction (downward)
+- Execution order matches data dependencies
+- No circular dependencies
+
+## Live Data Updates
+
+<Card title="Real-time Execution" icon="bolt">
+  At 60 FPS, data flows through your entire program every frame. Changes to any input immediately propagate through all connected blocks.
+</Card>
+
+When you adjust a slider:
+1. Inline data updates instantly
+2. Output node generates new value
+3. Wires carry new value to connected inputs
+4. Dependent blocks recompute with new value
+5. Canvas updates on next frame
+
+All of this happens **60 times per second**, creating a fluid, interactive experience.
+
+## Data Flow Best Practices
+
+<Steps>
+  <Step title="Organize by Flow">
+    Arrange blocks so data flows naturally from top to bottom, matching the visual wire direction.
+  </Step>
+  
+  <Step title="Reuse Calculations">
+    Use fan-out patterns to avoid duplicating the same calculation in multiple places.
+  </Step>
+  
+  <Step title="Keep Dependencies Clear">
+    Minimize crossing wires and long-distance connections for easier visual parsing.
+  </Step>
+  
+  <Step title="Use Comments">
+    Add comment blocks to document what data represents at key points in the flow.
+  </Step>
+</Steps>
+
+## Summary
+
+Data flow in b5 is:
+- **Visual** - Wires show explicit data paths
+- **Top-down** - Data flows from outputs to inputs, following execution order
+- **Flexible** - Supports fan-out, chains, and merging patterns
+- **Real-time** - Updates 60 times per second for interactive experiences
+- **Type-aware** - Node colors and validation help prevent errors
+
+Understanding data flow is key to building complex, interactive visual programs in b5.

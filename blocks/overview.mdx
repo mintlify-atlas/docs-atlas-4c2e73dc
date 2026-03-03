@@ -1,0 +1,128 @@
+---
+title: Block Reference Overview
+description: Introduction to the b5 block system and how blocks work in visual programming
+---
+
+## Introduction
+
+Blocks are the fundamental building units in b5. Instead of writing lines of code, you connect blocks together with wires to create interactive graphics and animations.
+
+## Block Anatomy
+
+Every block in b5 has:
+
+- **Name**: The function or operation the block performs
+- **Inputs** (nodes on bottom): Data that flows into the block
+- **Outputs** (nodes on top): Data that flows out of the block
+- **Inline Data**: Some blocks have input boxes for direct values
+
+## Block Categories
+
+### Canvas Setup
+Blocks for initializing and configuring your canvas.
+- `createCanvas` - Initialize the drawing canvas
+- `canvasSize` - Get the current canvas dimensions
+
+### Shapes
+Blocks for drawing basic geometric shapes.
+- `circle` - Draw a circle
+- `rect` - Draw a rectangle
+- `lineXY` - Draw a line between two points
+
+### Colors
+Blocks for controlling fill and stroke colors.
+- `fill` - Set fill color
+- `stroke` - Set stroke color
+- `background` - Set background color
+- Color pickers for visual color selection
+
+### Transformations
+Blocks that modify the drawing context.
+- `rotate` - Rotate the coordinate system
+- `scale` - Scale the coordinate system
+- `translate` - Move the coordinate system
+
+### Numbers & Math
+Blocks for working with numeric values.
+- `number` - Static number value
+- `numberSlider` - Interactive number slider
+- `fractionSlider` - Slider with fractional values
+- `add`, `subtract`, `multiply`, `divide` - Math operators
+
+### Logic & Control
+Blocks for conditional logic and program flow.
+- `toggle` - Boolean toggle based on condition
+- `random` - Generate random values
+- `stopDraw` - Stop drawing when condition is met
+- `bool` - Boolean input parameter
+- `true`/`false` - Boolean constants
+
+### Mouse & Keyboard
+Blocks for user interaction.
+- `mouse` - Get mouse position
+- `mouseIsPressed` - Check if mouse is pressed
+- `mouseClicked` - Detect mouse clicks
+
+### Timing
+Blocks for controlling animation timing.
+- `frameRate` - Set or get the frame rate
+- `frameRateShow` - Display current frame rate
+
+### Physics (Matter.js)
+Blocks for physics simulation using Matter.js.
+- `matter_startEngine` - Initialize physics engine
+- `matter_box` - Create a physics box
+- `matter_ball` - Create a physics ball
+- `matter_ground` - Create a ground plane
+
+## Effect Blocks
+
+Some blocks are **effect blocks** (shown with colored backgrounds). These blocks affect subsequent blocks through contextual relationships rather than wire connections:
+
+- `fill` - Sets fill color for shapes that follow
+- `stroke` - Sets stroke color for shapes that follow
+- `rotate` - Rotates the coordinate system for shapes that follow
+- `scale` - Scales the coordinate system for shapes that follow
+
+When you select an effect block, the grid cells change color to show its effective range.
+
+## Execution Order
+
+<Warning>
+Unlike most node-based visual programming languages, b5 executes blocks **from left to right, and line by line from top to bottom** - just like reading text. The position of blocks matters!
+</Warning>
+
+## Block Sources
+
+Blocks come from different sources:
+
+- **original**: Built-in b5 blocks
+- **custom**: User-defined blocks from the Factory
+- **library**: Blocks from external libraries (like Matter.js, PoseNet)
+
+## Adding Blocks
+
+To add a block to your canvas:
+
+1. **Double click** on an empty block room in the code canvas
+2. Search for the block by name, type, or description
+3. Select the block to add it
+
+You can also drag custom blocks directly from the Factory preview into the Playground.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Canvas Setup" icon="canvas" href="/blocks/canvas-setup">
+    Learn about canvas initialization blocks
+  </Card>
+  <Card title="Drawing Shapes" icon="shapes" href="/blocks/shapes">
+    Explore shape drawing blocks
+  </Card>
+  <Card title="Colors" icon="palette" href="/blocks/colors">
+    Work with colors and color pickers
+  </Card>
+  <Card title="Transformations" icon="rotate" href="/blocks/transformations">
+    Transform your drawings
+  </Card>
+</CardGroup>

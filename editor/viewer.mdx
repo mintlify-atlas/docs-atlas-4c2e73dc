@@ -1,0 +1,296 @@
+---
+title: Viewer
+description: Live preview and control your sketch output
+---
+
+The Viewer displays the live output of your b5 program running in the Playground. It provides real-time visual feedback and controls for managing your sketch.
+
+## Viewer Controls
+
+The Viewer header contains several control buttons:
+
+<Tabs>
+  <Tab title="Loop / No Loop">
+    **Toggle sketch execution**
+    
+    - **Loop**: Sketch runs continuously at 60 FPS
+    - **No Loop**: Sketch is paused, showing a static "PAUSED" indicator
+    
+    Click to pause a running sketch or resume a paused one. This is useful for:
+    - Inspecting specific frames
+    - Debugging visual output
+    - Reducing CPU usage when not actively developing
+  </Tab>
+  
+  <Tab title="Refresh">
+    **Restart the sketch**
+    
+    Restarts the sketch from the beginning, re-running initialization code.
+    
+    - Only enabled when sketch is running
+    - Useful for:
+      - Testing initialization
+      - Resetting random values
+      - Starting animations from the beginning
+    
+    <Note>
+      Refresh is disabled when the sketch is paused. Resume it first, then refresh.
+    </Note>
+  </Tab>
+  
+  <Tab title="Capture">
+    **Save current frame as PNG**
+    
+    Downloads the current canvas frame as `myCanvas.png`.
+    
+    - Only enabled when sketch is running
+    - Captures the exact current frame
+    - Saves to your default downloads folder
+    
+    Perfect for:
+    - Saving interesting generated outputs
+    - Creating documentation screenshots
+    - Sharing your work
+  </Tab>
+</Tabs>
+
+<Warning>
+  Refresh and Capture buttons are disabled when the sketch is paused. Click the Loop button to resume execution first.
+</Warning>
+
+## Viewer Modes
+
+The Viewer can be displayed in two modes:
+
+### Popup Mode (Default)
+
+The Viewer appears as a floating window that can be:
+
+- **Dragged**: Click and hold the header, then drag to reposition
+- **Resized**: Automatically sizes to fit your canvas
+- **Moved freely**: Position anywhere on screen
+
+<Tip>
+  The Viewer header shows a grab cursor when you hover over it, indicating you can drag the window.
+</Tip>
+
+### Mini Mode
+
+Click the **minimize button** to shrink the Viewer to a corner:
+
+<Steps>
+  <Step title="Click Minimize">
+    Click the small minimize button in the Viewer header.
+  </Step>
+  
+  <Step title="Viewer Shrinks">
+    The Viewer scales down and moves to the corner of the screen.
+    
+    The canvas is automatically scaled to fit within a small target size while maintaining aspect ratio.
+  </Step>
+  
+  <Step title="Click Expand">
+    Click the expand button to restore the Viewer to full size.
+    
+    The Viewer returns to popup mode at its original scale.
+  </Step>
+</Steps>
+
+<Note>
+  Mini mode gives you maximum workspace for editing while keeping your sketch output visible.
+</Note>
+
+## Dragging the Viewer
+
+The Viewer window can be repositioned anywhere on screen:
+
+<Steps>
+  <Step title="Hover on Header">
+    Move your cursor over the Viewer header. The cursor changes to indicate the window is draggable.
+  </Step>
+  
+  <Step title="Click and Drag">
+    Click and hold the header, then drag the window to your desired position.
+  </Step>
+  
+  <Step title="Boundary Constraints">
+    The Viewer stays within the window bounds:
+    - Can't be dragged completely off-screen
+    - At least the header remains visible
+    - Automatically constrains to window edges
+  </Step>
+</Steps>
+
+<Tip>
+  Position the Viewer where it doesn't obscure your code canvas or block search.
+</Tip>
+
+## Canvas Rendering
+
+The Viewer uses the b5.js rendering engine to display your sketch:
+
+### Default Canvas
+
+The sketch renders to a canvas with ID `defaultCanvas0` (p5.js convention).
+
+### Rendering Loop
+
+When the sketch is running:
+
+- Executes the Playground code at 60 FPS
+- Updates the canvas in real-time
+- Reflects code changes immediately
+
+### Paused State
+
+When paused:
+
+- Canvas is hidden
+- "PAUSED" icon is displayed
+- No code execution occurs
+- CPU usage is minimal
+
+## Automatic Resizing
+
+The Viewer automatically adjusts to canvas size changes:
+
+### In Mini Mode
+
+When variables in the Factory change (which may affect canvas size):
+
+- The Viewer detects the change
+- Recalculates the scale to fit the target size
+- Updates automatically to maintain aspect ratio
+
+<CodeGroup>
+```js Scaling Calculation
+const targetScale = Math.min(
+  (targetSize / canvas.height) * 2,
+  (targetSize / canvas.width) * 2
+)
+```
+</CodeGroup>
+
+### In Popup Mode
+
+The Viewer uses automatic sizing to fit the canvas without scaling.
+
+## Live Coding Feedback
+
+The Viewer provides immediate visual feedback:
+
+<Tabs>
+  <Tab title="Block Changes">
+    When you add, remove, or modify blocks:
+    
+    - Changes are reflected instantly
+    - No need to refresh manually
+    - Animations continue running
+  </Tab>
+  
+  <Tab title="Variable Updates">
+    When you change Factory variables:
+    
+    - The sketch restarts automatically
+    - New values take effect immediately
+    - Viewer may resize if canvas dimensions changed
+  </Tab>
+  
+  <Tab title="Function Updates">
+    When you modify Factory functions:
+    
+    - Function definition updates immediately
+    - Next call uses new logic
+    - No restart required
+  </Tab>
+</Tabs>
+
+## Performance Considerations
+
+<CardGroup cols={2}>
+  <Card title="Pause When Not Needed" icon="pause">
+    Pause the Viewer when not actively testing to reduce CPU usage.
+  </Card>
+  
+  <Card title="Minimize for Space" icon="compress">
+    Use mini mode to save screen space while keeping output visible.
+  </Card>
+  
+  <Card title="60 FPS Default" icon="gauge-high">
+    The default 60 FPS provides smooth animations but uses more CPU than lower frame rates.
+  </Card>
+  
+  <Card title="Capture Interesting Frames" icon="camera">
+    Save frames you want to keep before refreshing or closing.
+  </Card>
+</CardGroup>
+
+## Viewer State
+
+The Viewer maintains several pieces of state:
+
+- **Loop status**: Running or paused
+- **Position**: X and Y coordinates on screen
+- **Mode**: Popup or mini
+- **Size**: Canvas dimensions and scale
+
+<Note>
+  The Viewer state is managed in React component state and is reset when you load a new project.
+</Note>
+
+## Keyboard Shortcuts
+
+While the Viewer itself doesn't have dedicated keyboard shortcuts, related operations include:
+
+- **Cmd/Ctrl + S**: Save your project (includes Viewer state)
+- **Escape**: Close block search (doesn't affect Viewer)
+
+## Integration with Editor
+
+The Viewer is tightly integrated with the editor:
+
+<Steps>
+  <Step title="Data Flow">
+    Editor changes are sent to the Viewer via a bridge function.
+  </Step>
+  
+  <Step title="Rendering">
+    The Viewer receives the editor state and renders it using b5.js.
+  </Step>
+  
+  <Step title="Real-time Updates">
+    Updates happen on every editor state change, providing instant feedback.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Viewer shows 'PAUSED' but I didn't pause it">
+    The loop state may have toggled accidentally. Click the Loop button to resume execution.
+  </Accordion>
+  
+  <Accordion title="Capture button is disabled">
+    Ensure the sketch is running (not paused). The Capture button only works when the loop is active.
+  </Accordion>
+  
+  <Accordion title="Viewer is off-screen or hidden">
+    The Viewer should auto-constrain to window bounds. Try reloading the page to reset its position.
+  </Accordion>
+  
+  <Accordion title="Canvas looks scaled incorrectly in mini mode">
+    This can happen if the canvas size changed. Click expand and then minimize again to recalculate the scale.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Playground" icon="grid-2" href="/editor/playground">
+    Learn how the code canvas generates output for the Viewer
+  </Card>
+  
+  <Card title="Navigation" icon="arrows-up-down-left-right" href="/editor/navigation">
+    Master all editor controls for an efficient workflow
+  </Card>
+</CardGroup>

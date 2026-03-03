@@ -1,0 +1,231 @@
+---
+title: Your first project
+description: Build a complete bouncing ball animation with custom functions and interactive controls
+---
+
+## Build a bouncing ball animation
+
+In this tutorial, you'll create a complete interactive project: a colorful bouncing ball that responds to your inputs. You'll learn how to use the Factory to create custom functions, work with effect blocks, and build dynamic animations.
+
+<img className="block" src="https://raw.githubusercontent.com/peilingjiang/b5/main/media/interface_1.png" alt="b5 Interface" />
+
+<Steps>
+  <Step title="Set up the canvas">
+    First, create a custom variable to set up your canvas size.
+
+    1. Click the **variable** tab in the Factory section
+    2. Click the **+** button to add a new variable
+    3. Name it `cnv`
+    4. In the variable's canvas, add a **createCanvas** block
+    5. Add two **number** blocks for width and height:
+       - Width: `500`
+       - Height: `300`
+    6. Connect them to the createCanvas inputs
+
+    <Info>
+    Variables in the Factory run once before the Playground starts, just like the `setup` function in p5.js. Any change to variables will reinitiate your sketch.
+    </Info>
+
+    You can also use a **numberSlider** for the height to make it adjustable:
+    ```json
+    "inlineData": [300, 0, 600, 100]
+    ```
+    This creates a slider with current value 300, min 0, max 600, and step 100.
+  </Step>
+
+  <Step title="Add a comment and set the ball size">
+    Navigate to the **Playground** canvas and add context to your code.
+
+    1. Add a **comment** block in row 0, column 0
+    2. Type: `🏀Welcome to b5! This is Bounce Ball example. Feel free to play around!`
+    3. Add a **numberSlider** block next to it (row 0, column 1):
+       - Current value: `40`
+       - Min: `0`
+       - Max: `50`
+       - Step: `5`
+    4. Add another **comment** block: `⬅️Radius of the circle`
+
+    <Tip>
+    Comments help you and others understand your code. They don't affect the sketch but make your visual programs more readable.
+    </Tip>
+
+    The slider will control the ball's radius, which you'll connect later.
+  </Step>
+
+  <Step title="Create a boundaries function">
+    Create a custom function to calculate movement boundaries based on the ball's radius.
+
+    1. Click the **function** tab in the Factory
+    2. Click **+** to add a new function
+    3. Name it `boundaries`
+    4. Add a **num** input block (this will be the radius parameter)
+    5. Add a **canvasSize** block to get width and height
+    6. Create the boundary calculations:
+
+    **Lower boundary** (row 2, column 0):
+    - Add an **add** block
+    - Connect: `0` (number) + `radius` (num input)
+    - This outputs to the first return value
+
+    **Upper width boundary** (row 2, column 2):
+    - Add a **subtract** block  
+    - Connect: `width` (canvasSize output 0) - `radius` (num input)
+    - This outputs to the second return value
+
+    **Upper height boundary** (row 2, column 3):
+    - Add a **subtract** block
+    - Connect: `height` (canvasSize output 1) - `radius` (num input)
+    - This outputs to the third return value
+
+    <Info>
+    Functions can have multiple outputs. The boundaries function returns three values: the lower boundary, upper width boundary, and upper height boundary.
+    </Info>
+
+    Add comment blocks to explain each calculation:
+    - `➡️Take the radius of the circle into the function`
+    - `⬅️The lower boundaries of the width and height`
+    - `⬆️The upper boundary of the width`
+    - `⬆️The upper boundary of the height`
+  </Step>
+
+  <Step title="Use the boundaries function">
+    Back in the **Playground**, use your custom function.
+
+    1. In row 1, column 2, add your **boundaries** function block
+    2. Connect the radius slider (row 0, column 1 output) to the boundaries input
+    3. Add a **number** block with value `7` for the bounce step
+    4. Add comment blocks:
+       - `➡️You can see the definition of the function under the function tab`
+       - `⬅️Each step of bouncing`
+
+    <Tip>
+    Custom function blocks appear in the block search just like built-in blocks. You can also drag them directly from the Factory preview.
+    </Tip>
+  </Step>
+
+  <Step title="Add bouncing motion">
+    Create the bouncing behavior for both x and y coordinates.
+
+    1. Add a **comment** in row 3, column 0: `➡️Move the value between (radius) and (width - radius)`
+    2. Add a **bounce** block in row 3, column 1 with inputs:
+       - Input 0: Lower boundary (from boundaries output 0)
+       - Input 1: Upper width boundary (from boundaries output 1)  
+       - Input 2: Step size (the number 7)
+    3. Add another **comment**: `➡️Move the value between (radius) and (height - radius)`
+    4. Add another **bounce** block in row 3, column 3 with inputs:
+       - Input 0: Lower boundary (from boundaries output 0)
+       - Input 1: Upper height boundary (from boundaries output 2)
+       - Input 2: Step size (the number 7)
+
+    These bounce blocks will automatically animate the ball's position, moving it back and forth within the boundaries.
+  </Step>
+
+  <Step title="Draw the ball with dynamic color">
+    Create a colorful ball that changes based on its position.
+
+    1. In row 5, column 0, add a **strokePicker** block
+    2. Set the color to `#4a90e2ff` (blue stroke)
+    3. Add a **comment**: `➡️Map the x position to red value, and y position to green value`
+    4. Add a **fillRGBA** block in row 5, column 2 with inputs:
+       - R (red): Connect the x-position bounce output
+       - G (green): Connect the y-position bounce output
+       - B (blue): Leave empty (defaults to 0)
+       - A (alpha): Leave empty (defaults to 255)
+    5. Add a **circle** block in row 5, column 3 with inputs:
+       - x: Connect the x-position bounce output
+       - y: Connect the y-position bounce output
+       - diameter: Connect the radius slider output
+
+    <Note>
+    The fillRGBA block is an effect block. It affects the circle because it's positioned to the left in the same row, creating a fill color that changes as the ball moves.
+    </Note>
+  </Step>
+
+  <Step title="Add final comments">
+    Add one more comment for clarity:
+
+    1. In row 6, column 0, add: `⬆️Use the color picker to quickly set the stroke color`
+
+    Your complete bouncing ball animation is now running at 60 FPS!
+  </Step>
+
+  <Step title="Experiment and save">
+    Now that your project is complete, try these experiments:
+
+    - Adjust the radius slider and watch the ball size change
+    - Change the bounce step from 7 to other values for faster/slower motion
+    - Try different stroke colors with the strokePicker
+    - Modify the canvas height slider (if you added one in the variable)
+
+    When you're satisfied, save your project:
+    - Press `⌘/ctrl + S` to download the `.b5.json` file
+    - Your project is saved with all blocks, wires, and configurations
+  </Step>
+</Steps>
+
+## Understanding the data flow
+
+Let's trace how data flows through your bouncing ball program:
+
+1. **Canvas setup** (Factory variable `cnv`): Creates a 500×300 canvas (runs once)
+2. **Radius definition** (row 0): Slider sets the ball radius (40)
+3. **Boundary calculation** (row 1): Custom function calculates movement limits based on radius
+4. **Position animation** (row 3): Two bounce blocks animate x and y coordinates within boundaries
+5. **Visual rendering** (row 5): Stroke color + dynamic fill color + circle drawing
+
+Because the Playground runs 60 times per second, the bounce blocks update positions each frame, creating smooth animation.
+
+<Tip>
+Select the fillRGBA or strokePicker blocks to see their effective range highlighted on the grid. This visual feedback shows which blocks are affected by these effect blocks.
+</Tip>
+
+## Key concepts you learned
+
+<CardGroup cols={2}>
+  <Card title="Factory variables" icon="box">
+    Create reusable setup code that runs once, like canvas creation
+  </Card>
+  <Card title="Custom functions" icon="function">
+    Build your own blocks with inputs and multiple outputs for complex logic
+  </Card>
+  <Card title="Effect blocks" icon="wand-magic-sparkles">
+    Use position-based blocks like fillRGBA and strokePicker to affect subsequent blocks
+  </Card>
+  <Card title="Animation" icon="circle-play">
+    Leverage the 60 FPS Playground loop to create smooth, interactive animations
+  </Card>
+</CardGroup>
+
+## Next steps
+
+Now that you've built a complete project, you can:
+
+- **Load examples**: Click the Files icon (top-left) to load example projects with detailed comments
+- **Experiment with libraries**: Try blocks from different categories (math, color, shape, etc.)
+- **Share your work**: Export your project and share the JSON file with others
+- **Build more complex projects**: Combine multiple functions, variables, and effect blocks
+
+<Info>
+Remember: b5 executes blocks from left to right, line by line from top to bottom. This sequential execution makes it easy to predict how your program will run.
+</Info>
+
+## Full project structure
+
+Your complete bouncing ball project includes:
+
+**Factory:**
+- 1 variable (`cnv`) with canvas setup
+- 1 function (`boundaries`) with boundary calculations
+
+**Playground:**
+- Row 0: Welcome comment, radius slider, radius comment
+- Row 1: Function comment, boundaries function call, step number, step comment  
+- Row 3: X-bounce comment, x-bounce block, y-bounce comment, y-bounce block
+- Row 5: Stroke picker, color comment, fillRGBA block, circle block
+- Row 6: Stroke picker comment
+
+This structure creates a maintainable, readable visual program that others can understand and modify.
+
+<Tip>
+To see the exact JSON structure of this project, check out the example file at `/src/examples/example1.b5.json` in the b5 repository.
+</Tip>

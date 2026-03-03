@@ -1,0 +1,247 @@
+---
+title: Effect Blocks
+description: Understanding contextual state management through effect blocks
+---
+
+Effect blocks are a unique feature of b5 that leverage the sequential execution model to manage drawing context and state. Unlike regular blocks that pass data through wires, effect blocks influence other blocks through their **positional relationship**.
+
+## What Are Effect Blocks?
+
+<Note>
+  Effect blocks affect other blocks based on their **contextual relationship** - their position on the grid - rather than through wire connections.
+</Note>
+
+Inspired by p5.js functions like `fill()`, `stroke()`, and `scale()` that set the drawing context for subsequent shapes, b5's effect blocks work the same way but make their scope **visually explicit**.
+
+### Visual Scope Indication
+
+<Card title="Grid Highlighting" icon="highlighter">
+  When you select an effect block, the background grid cells change color to show exactly which blocks are affected by that effect.
+</Card>
+
+From the README:
+
+> When an effect block is selected, the background grid cells will also change color to reflect its effective range, unlike when working with text-based languages, the underlying status of the drawing context always remains hidden to the users and needs to be inferred from the actual behavior of the program.
+
+This visual feedback makes the "hidden state" of drawing context **visible and explicit**.
+
+## Types of Effect Blocks
+
+The source code defines effect blocks in `magicalIndex.js:14-32`:
+
+### Color Effect Blocks
+
+<AccordionGroup>
+  <Accordion title="Fill Effects">
+    Control the fill color for shapes drawn after them:
+    
+    - `fillPicker` - Visual color picker for fill
+    - `fillRGBA` - Set fill using RGBA values
+    - `noFill` - Disable fill for subsequent shapes
+    
+    These affect all drawing blocks that come **after** them in execution order.
+  </Accordion>
+
+  <Accordion title="Stroke Effects">
+    Control the stroke (outline) for shapes:
+    
+    - `strokePicker` - Visual color picker for stroke  
+    - `strokeRGBA` - Set stroke using RGBA values
+    - `noStroke` - Disable stroke for subsequent shapes
+    - `strokeWeight` - Set stroke thickness
+    - `strokeWeightSlider` - Interactive slider for stroke weight
+  </Accordion>
+
+  <Accordion title="Draw Control">
+    Control whether shapes are drawn:
+    
+    - `stopDraw` - Stop rendering shapes after this point
+    - `startDraw` - Resume rendering shapes
+    
+    Useful for controlling visibility of different sections.
+  </Accordion>
+</AccordionGroup>
+
+### Transformation Effects
+
+<Warning>
+  Transformation effects like `translate` and `rotate` affect the coordinate system for all blocks that execute after them.
+</Warning>
+
+- `translate` - Move the origin point
+- `rotate` - Rotate the coordinate system
+
+These accumulate as the code executes, just like in p5.js.
+
+## Effect Types
+
+From `magicalIndex.js:5-12`, effect blocks have different scope types:
+
+```javascript
+/**
+ * TYPES
+ * 0: All after
+ * 1: All before  
+ * 2: Surroundings
+ * 3: One line
+ * 4: One column
+ */
+```
+
+Most color and transformation effects are **Type 0: All after**, meaning they affect all blocks that execute after them.
+
+<Note>
+  The `quadratic` block is Type 2 (Surroundings), meaning it has a different scope pattern than standard effect blocks.
+</Note>
+
+## Example: Bounce Ball
+
+From the example1.b5.json file, here's how effect blocks work in practice:
+
+### Setting Stroke Color
+
+```json
+{
+  "5": {
+    "0": {
+      "name": "strokePicker",
+      "inlineData": ["#4a90e2ff"]
+    }
+  }
+}
+```
+
+Row 5, Column 0 has a `strokePicker` effect block. This sets the stroke color to blue.
+
+### Setting Fill Color
+
+```json
+{
+  "5": {
+    "2": {
+      "name": "fillRGBA",
+      "input": {
+        "0": ["3", "1", "0"],  // Red from x position
+        "1": ["3", "3", "0"],  // Green from y position
+        "2": null,              // Blue (default)
+        "3": null               // Alpha (default)
+      }
+    }
+  }
+}
+```
+
+Row 5, Column 2 sets a dynamic fill color using RGBA values from wired inputs.
+
+### Drawing with Effects
+
+```json
+{
+  "5": {
+    "3": {
+      "name": "circle",
+      "input": {
+        "0": ["3", "1", "0"],  // x position
+        "1": ["3", "3", "0"],  // y position  
+        "2": ["0", "1", "0"]   // radius
+      }
+    }
+  }
+}
+```
+
+The `circle` block at Row 5, Column 3 is drawn **after** both the `strokePicker` and `fillRGBA` effect blocks (reading left-to-right), so it uses:
+- Blue stroke (from strokePicker)
+- Dynamic RGB fill (from fillRGBA)
+
+## Effect vs. Data Flow
+
+<CardGroup cols={2}>
+  <Card title="Data Flow (Wires)" icon="diagram-project">
+    **Explicit connections** that pass specific values from output nodes to input nodes.
+    
+    Used for: Numbers, colors, positions, calculations
+  </Card>
+  
+  <Card title="Effect Flow (Position)" icon="paint-brush">
+    **Implicit context** that affects blocks based on execution order.
+    
+    Used for: Drawing styles, transformations, global state
+  </Card>
+</CardGroup>
+
+### When to Use Each
+
+**Use wired data flow when:**
+- You need to pass a specific value to a specific input
+- The relationship should be explicit
+- Different blocks need different values
+
+**Use effect blocks when:**
+- You want to set a style for multiple shapes
+- The effect should apply to a sequence of operations  
+- You're managing drawing context or global state
+
+## Combining Effects and Data
+
+Many effect blocks can **both** receive wired inputs **and** affect subsequent blocks:
+
+```
+[x position] ──┐
+               ├──> [fillRGBA] ─(effect)─> [circle]
+[y position] ──┘                             ↑
+                                             │
+                                        (also uses
+                                         wired data)
+```
+
+The `fillRGBA` block:
+1. Receives color values through wires (data flow)
+2. Sets the fill context for blocks after it (effect flow)
+
+## Visibility of State
+
+<Tip>
+  The key innovation of effect blocks in b5 is making **invisible state visible**. The grid highlighting shows you exactly what's affected, eliminating the guesswork of traditional text-based context management.
+</Tip>
+
+In text-based p5.js code:
+
+```javascript
+fill(255, 0, 0);  // Sets fill - but for what?
+circle(100, 100, 50);  // Uses red fill - but not obvious
+rect(200, 200, 30, 30);  // Also red - did you remember?
+```
+
+In b5, when you select the fill effect block, **you see exactly** which shapes use that fill through grid highlighting.
+
+## Effect Block Best Practices
+
+<Steps>
+  <Step title="Position Effects Before Use">
+    Place effect blocks in earlier rows (higher up) than the blocks they should affect.
+  </Step>
+  
+  <Step title="Group Related Effects">
+    Keep effect blocks that work together (fill, stroke, strokeWeight) on the same row, left of the shapes they affect.
+  </Step>
+  
+  <Step title="Use Visual Feedback">
+    Click on effect blocks to see their scope - the grid highlighting helps you verify which blocks are affected.
+  </Step>
+  
+  <Step title="Reset When Needed">
+    Use `noFill` or `noStroke` to explicitly reset effects when you want different styles.
+  </Step>
+</Steps>
+
+## Technical Implementation
+
+Effect blocks are identified in the codebase through the `_colorEffectIndex` in `magicalIndex.js`. When rendering, the system:
+
+1. Tracks which effect blocks have been executed
+2. Applies their context to the drawing state  
+3. Maintains that context for subsequent blocks
+4. Highlights grid cells when an effect block is selected
+
+This creates a visual programming environment where state management is **explicit, visible, and intuitive**.

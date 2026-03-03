@@ -1,0 +1,278 @@
+---
+title: Transformation Blocks
+description: Blocks for rotating, scaling, and translating the coordinate system
+---
+
+## Overview
+
+Transformation blocks are **effect blocks** that modify the coordinate system for drawing. Like color blocks, they affect all subsequent drawing operations in their scope.
+
+<Warning>
+**Coordinate System Changes**: Transformation blocks don't move existing shapes - they change where future shapes will be drawn. The transformations accumulate and affect all drawing operations that follow.
+</Warning>
+
+## rotate
+
+Rotates the coordinate system by a specified angle.
+
+<ParamField path="angle" type="number" required>
+  Rotation angle in radians
+</ParamField>
+
+**Effect Type**: Transform effect block
+
+### Example Usage
+
+```
+Line 0: [number: 3.14159] -> angle (180 degrees)
+Line 1: [rotate] <- angle
+        [rect: 0, 0, 50, 50] <- drawn rotated 180°
+```
+
+The rotation happens around the origin (0, 0). To rotate around a different point, use `translate` first:
+
+```
+Line 0: [canvasSize] -> width, height
+        [divide: width, 2] -> centerX  
+        [divide: height, 2] -> centerY
+Line 1: [translate] <- centerX, centerY  // Move origin to center
+        [rotate] <- angle                 // Rotate around center
+        [circle: 0, 0, 100] <- drawn at center, rotated
+```
+
+<Info>
+**Radians vs Degrees**: Rotation uses radians, not degrees.
+- 2π radians = 360 degrees
+- π radians = 180 degrees  
+- π/2 radians = 90 degrees
+- Formula: `radians = degrees × π / 180`
+</Info>
+
+## scale
+
+Scales the coordinate system by a specified factor.
+
+<ParamField path="scale" type="number" required>
+  Scale factor (1.0 = normal size, 2.0 = double size, 0.5 = half size)
+</ParamField>
+
+**Effect Type**: Transform effect block
+
+### Example Usage
+
+```
+Line 0: [numberSlider: 1.5, 0.1-3.0] -> scale factor
+Line 1: [scale] <- scale factor
+        [circle: 100, 100, 50] <- drawn 1.5x larger
+```
+
+Scaling affects both position AND size:
+- `scale: 2.0` with `circle: 100, 100, 50` draws a circle at position (200, 200) with diameter 100
+- Everything is doubled: coordinates and dimensions
+
+### Uniform vs Non-Uniform Scaling
+
+Some versions of the scale block support separate X and Y scaling:
+
+<ParamField path="scaleX" type="number">
+  Horizontal scale factor
+</ParamField>
+
+<ParamField path="scaleY" type="number">
+  Vertical scale factor
+</ParamField>
+
+```
+Line 0: [scale] <- 2.0, 1.0  // Double width, normal height
+        [circle: 100, 100, 50] <- becomes an ellipse
+```
+
+## translate
+
+Moves the origin of the coordinate system.
+
+<ParamField path="x" type="number" required>
+  Horizontal offset in pixels
+</ParamField>
+
+<ParamField path="y" type="number" required>
+  Vertical offset in pixels
+</ParamField>
+
+**Effect Type**: Transform effect block
+
+### Example Usage
+
+```
+Line 0: [canvasSize] -> width, height
+        [divide: width, 2] -> centerX
+        [divide: height, 2] -> centerY  
+Line 1: [translate] <- centerX, centerY
+        [circle: 0, 0, 100] <- drawn at canvas center
+```
+
+After `translate: 250, 150`, drawing at position (0, 0) actually draws at (250, 150).
+
+### Moving the Origin
+
+`translate` is particularly useful for:
+- Drawing at the canvas center
+- Creating local coordinate systems for complex shapes
+- Simplifying rotation around a specific point
+
+```
+// Draw a rotating square at canvas center
+Line 0: [canvasSize] -> width, height
+Line 1: [translate] <- width/2, height/2    // Move origin to center
+        [rotate] <- angle                     // Rotate around center
+        [rect: -25, -25, 50, 50] <- 50×50 square, centered on origin
+```
+
+## Combining Transformations
+
+Transformations can be combined and accumulate in order:
+
+### Pattern 1: Centered Rotation
+
+```
+Line 0: [translate] <- width/2, height/2  // 1. Move to center
+Line 1: [rotate] <- angle                  // 2. Rotate
+Line 2: [circle: 50, 0, 20] <- drawn offset from center, rotated
+```
+
+### Pattern 2: Scaled and Rotated
+
+```
+Line 0: [translate] <- centerX, centerY   // 1. Move to center
+Line 1: [scale] <- 2.0                    // 2. Scale up
+        [rotate] <- angle                  // 3. Rotate
+Line 2: [rect: -25, -25, 50, 50] <- 2x size, rotated, centered
+```
+
+### Pattern 3: Animation Loop
+
+```
+Variable: angle
+  [number: 0] -> initial angle
+  
+Playground:
+  Line 0: [angle] -> get current angle
+          [add: 0.05] -> increment
+          // Store back to angle variable (requires custom block)
+Line 1: [translate] <- width/2, height/2
+        [rotate] <- angle
+Line 2: [rect: -25, -25, 50, 50] <- continuously rotating
+```
+
+## Push and Pop (Transform Stack)
+
+While not shown in the current examples, b5 likely supports push/pop operations for saving and restoring transformation states:
+
+### push
+
+Saves the current transformation state.
+
+### pop  
+
+Restores the previously saved transformation state.
+
+```
+Line 0: [push] <- save state
+        [translate] <- 100, 100
+        [rotate] <- PI/4
+        [circle: 0, 0, 50] <- transformed
+Line 1: [pop] <- restore state
+        [circle: 0, 0, 50] <- not transformed
+```
+
+This allows you to apply transformations to some shapes without affecting others.
+
+## Transformation Order Matters
+
+The order of transformations produces different results:
+
+### Translate then Rotate
+
+```
+Line 0: [translate: 100, 0] <- move right 100px
+        [rotate: PI/2] <- rotate 90°
+        [rect: 0, 0, 50, 50] <- at (100, 0), rotated
+```
+
+### Rotate then Translate  
+
+```
+Line 0: [rotate: PI/2] <- rotate 90° around origin
+        [translate: 100, 0] <- move in rotated direction (now moves UP)
+        [rect: 0, 0, 50, 50] <- at (0, 100), rotated
+```
+
+<Tip>
+**Transformation Order**: Think of transformations as modifying the coordinate system, not the shapes. Each transformation changes how the NEXT transformation and draw operations work.
+</Tip>
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="Rotating Around Center">
+    ```
+    [translate] <- width/2, height/2  // Move origin to center
+    [rotate] <- angle                  // Rotate around center point
+    [shape] <- 0, 0                    // Draw at origin (center)
+    ```
+  </Accordion>
+
+  <Accordion title="Orbiting Objects">
+    ```
+    [translate] <- centerX, centerY    // Move to center
+    [rotate] <- orbit_angle            // Rotate coordinate system
+    [translate] <- orbit_radius, 0     // Move out from center
+    [circle] <- 0, 0, 20               // Draw at orbital position
+    ```
+  </Accordion>
+
+  <Accordion title="Scaling from Center">
+    ```
+    [translate] <- width/2, height/2   // Move to center
+    [scale] <- scale_factor            // Scale around center
+    [rect] <- -25, -25, 50, 50        // Draw centered square
+    ```
+  </Accordion>
+
+  <Accordion title="Repeating Patterns">
+    ```
+    Function: drawShape
+      [rotate] <- angle_step
+      [shape] <- parameters
+    
+    Playground:  
+      [translate] <- centerX, centerY
+      Loop 12 times:
+        [drawShape]
+    ```
+    Creates 12 shapes rotated around a center point.
+  </Accordion>
+</AccordionGroup>
+
+## Tips for Transformations
+
+<Tip>
+**Center Everything**: For rotation and scaling, usually you want to translate to the center first, then apply the transformation.
+</Tip>
+
+<Tip>
+**Use Variables**: Store frequently used calculations like canvas center coordinates in variables:
+```
+Variable: centerX
+  [canvasSize] -> width
+  [divide: 2] -> width/2
+```
+</Tip>
+
+<Tip>
+**Animation**: Combine transformations with sliders or incrementing values to create animations. Change the rotation angle each frame for spinning effects.
+</Tip>
+
+<Warning>
+**Reset Between Frames**: In the Playground (which runs 60 times per second), transformations reset each frame. If you want cumulative rotation, you need to store the angle value and increment it.
+</Warning>

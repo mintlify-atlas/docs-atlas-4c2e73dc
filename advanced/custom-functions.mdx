@@ -1,0 +1,306 @@
+---
+title: 'Custom Functions'
+description: 'Create reusable custom functions with inputs and outputs in the Factory for modular b5 programming'
+icon: 'function'
+---
+
+## Overview
+
+Functions in b5 work like defining functions in traditional programming languages. Unlike variables that run once during setup, functions are only executed when you place them in the Playground canvas. This makes them perfect for reusable logic that needs to run repeatedly.
+
+## Creating a Function
+
+<Steps>
+  <Step title="Open the Factory">
+    Navigate to the Factory section and click on the **function** tab.
+  </Step>
+  
+  <Step title="Add a New Function">
+    Click the **new** button to create a new function section.
+  </Step>
+  
+  <Step title="Name Your Function">
+    Use the rename icon to give your function a descriptive name that indicates what it does.
+    
+    <Note>
+    Function names follow the same rules as variables: alphanumeric characters only, 1-16 characters, and no conflicts with existing blocks.
+    </Note>
+  </Step>
+  
+  <Step title="Define Input Parameters">
+    Add **num** (number), **str** (string), or **bool** (boolean) blocks to create input parameters for your function. These appear as input nodes on your function block.
+  </Step>
+  
+  <Step title="Build the Function Logic">
+    Create the computation or drawing logic using the available blocks. The function canvas supports up to 199 lines and 19 blocks per line.
+  </Step>
+  
+  <Step title="Define Outputs">
+    Blocks with unconnected output nodes become the function's output nodes. Multiple outputs are supported.
+  </Step>
+</Steps>
+
+## Function Block Characteristics
+
+- **Custom Inputs**: Use input blocks (`num`, `str`, `bool`) to define parameters
+- **Multiple Outputs**: Any block with unused output nodes creates a function output
+- **Execution on Demand**: Only runs when placed in Playground, not during initialization
+- **Reusable**: Can be used multiple times throughout your project
+- **Nestable**: Can call other custom functions
+
+## Example: Boundaries Function
+
+Here's a real example from the Bounce Ball demo that calculates movement boundaries:
+
+<CodeGroup>
+```json Function Structure
+{
+  "name": "boundaries",
+  "type": "function",
+  "lineStyles": {},
+  "blocks": {
+    "0": {
+      "0": {
+        "name": "number",
+        "source": "original",
+        "inlineData": [0],
+        "output": { "0": [["2", "0", "0"]] }
+      },
+      "2": {
+        "name": "num",
+        "source": "original",
+        "input": { "0": null },
+        "output": {
+          "0": [
+            ["2", "2", "1"],
+            ["2", "3", "1"],
+            ["2", "0", "1"]
+          ]
+        }
+      },
+      "3": {
+        "name": "canvasSize",
+        "source": "original",
+        "output": { 
+          "0": [["2", "2", "0"]], 
+          "1": [["2", "3", "0"]] 
+        }
+      }
+    },
+    "2": {
+      "0": {
+        "name": "add",
+        "source": "original",
+        "input": { 
+          "0": ["0", "0", "0"], 
+          "1": ["0", "2", "0"] 
+        },
+        "output": { "0": [] }
+      },
+      "2": {
+        "name": "subtract",
+        "source": "original",
+        "input": { 
+          "0": ["0", "3", "0"], 
+          "1": ["0", "2", "0"] 
+        },
+        "output": { "0": [] }
+      },
+      "3": {
+        "name": "subtract",
+        "source": "original",
+        "input": { 
+          "0": ["0", "3", "1"], 
+          "1": ["0", "2", "0"] 
+        },
+        "output": { "0": [] }
+      }
+    }
+  }
+}
+```
+
+```text Function Logic
+Input: radius (from num block)
+
+Line 0:
+  [0] → [add] ──────→ Output 0: lower boundary
+  [num: radius] ─┬─→ [subtract] → Output 1: width - radius
+                 └─→ [subtract] → Output 2: height - radius
+  [canvasSize] ──┬─→ width
+                 └─→ height
+
+Line 2:
+  Calculations for boundaries based on radius
+```
+</CodeGroup>
+
+### How It Works
+
+1. **Input**: Takes the circle radius as a parameter (via `num` block)
+2. **Gets Canvas Dimensions**: Uses `canvasSize` to get width and height
+3. **Calculates Boundaries**:
+   - Lower boundary: 0 + radius
+   - Upper width boundary: width - radius  
+   - Upper height boundary: height - radius
+4. **Outputs**: Three values that can be used for bounce calculations
+
+### Using the Function
+
+```json Playground Usage
+{
+  "name": "boundaries",
+  "source": "custom",
+  "input": { "0": ["0", "1", "0"] },
+  "output": {
+    "0": [["3", "1", "0"], ["3", "3", "0"]],
+    "1": [["3", "1", "1"]],
+    "2": [["3", "3", "1"]]
+  }
+}
+```
+
+The `"source": "custom"` indicates this is a user-created function, distinguishing it from `"original"` (built-in) and `"library"` (imported) blocks.
+
+## Input Parameter Types
+
+| Block Name | Type | Description |
+|------------|------|-------------|
+| `num` | Number | Accepts numeric values |
+| `str` | String | Accepts text strings |
+| `bool` | Boolean | Accepts true/false values |
+
+<Note>
+Input blocks have a single input node (to receive the parameter) and can output to multiple blocks within your function.
+</Note>
+
+## Function Canvas Properties
+
+| Property | Value | Description |
+|----------|-------|-------------|
+| Max Lines | 199 | Maximum number of lines in the function canvas |
+| Max Blocks per Line | 19 | Maximum blocks that can fit in one line |
+| Execution | On Call | Only runs when used in Playground |
+| Resizable | Yes | Drag the bottom bar to adjust section height |
+
+## Advanced Techniques
+
+### Multiple Inputs
+
+Create functions with multiple parameters by adding multiple input blocks:
+
+```text
+[num: x] ──┐
+[num: y] ──┼→ [calculation] → output
+[num: z] ──┘
+```
+
+### Multiple Outputs
+
+Any block with an unused output node automatically becomes a function output:
+
+```text
+[input] → [process] ─→ Output 1 (used elsewhere)
+                    └─→ Output 2 (unused = becomes function output)
+```
+
+### Effect Blocks in Functions
+
+Functions can contain effect blocks (like `fill`, `stroke`, `scale`) that affect the drawing context:
+
+<Warning>
+Effect blocks in custom functions will affect the drawing state. Their effective range follows b5's positional control rules based on where the function block is placed in the Playground.
+</Warning>
+
+## Best Practices
+
+1. **Single Responsibility**: Each function should do one thing well
+2. **Clear Naming**: Use verb-noun combinations (e.g., `calculateSpeed`, `drawPattern`)
+3. **Document with Comments**: Add comment blocks to explain complex logic
+4. **Test Thoroughly**: Verify with different input values before extensive use
+5. **Minimize Side Effects**: Be cautious with effect blocks that change global state
+
+## Common Use Cases
+
+### Mathematical Calculations
+Create functions for complex formulas used multiple times:
+```text
+Function: pythagoras(a, b) → returns c
+```
+
+### Drawing Patterns
+Encapsulate repeated drawing logic:
+```text
+Function: drawStar(x, y, size) → draws star shape
+```
+
+### Data Processing
+Transform or validate input data:
+```text
+Function: clampValue(val, min, max) → returns clamped value
+```
+
+## Managing Functions
+
+### Renaming
+1. Click the pencil icon in section controls
+2. Edit the name in the preview block
+3. Confirm by clicking outside
+
+### Deleting
+Click the trash icon to remove the function. All instances in Playground will be removed.
+
+<Warning>
+Deleting a function removes all instances from your project. If other custom blocks depend on this function, they may break.
+</Warning>
+
+### Resizing the Canvas
+Drag the resize bar at the bottom of the section to adjust the working area height.
+
+## Troubleshooting
+
+**Function not executing?**
+- Ensure it's placed in the Playground canvas (not just defined in Factory)
+- Check that all required inputs are connected
+
+**Unexpected outputs?**
+- Verify wire connections between blocks
+- Check that input parameters are being used correctly
+- Use comment blocks to document expected values
+
+**Function causes errors?**
+- Ensure all required inputs are provided when called
+- Check for type mismatches (number vs. string vs. boolean)
+- Verify that referenced variables exist
+
+## Execution Flow
+
+<Steps>
+  <Step title="Definition Phase (Factory)">
+    Function is defined but not executed. It exists as a template.
+  </Step>
+  
+  <Step title="Instantiation (Playground)">
+    When placed in Playground, function block is ready to receive inputs.
+  </Step>
+  
+  <Step title="Execution (60 FPS)">
+    Function runs every frame (or as often as Playground loops), processing inputs and generating outputs.
+  </Step>
+  
+  <Step title="Output Propagation">
+    Function outputs feed into connected blocks, flowing through your program.
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Custom Variables" icon="variable" href="/advanced/custom-variables">
+    Learn about creating variables for one-time setup values
+  </Card>
+  
+  <Card title="Save & Load Projects" icon="floppy-disk" href="/advanced/save-load">
+    Understand how custom functions are stored in .b5.json files
+  </Card>
+</CardGroup>

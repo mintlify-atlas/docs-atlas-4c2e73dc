@@ -1,0 +1,442 @@
+---
+title: Matter.js Physics Blocks
+description: Blocks for physics simulation using the Matter.js library
+---
+
+## Overview
+
+Matter.js physics blocks enable realistic physics simulation in b5, including gravity, collisions, and rigid body dynamics. These blocks are from the **library** source and require proper initialization.
+
+<Info>
+Physics blocks are based on [Matter.js](https://brm.io/matter-js/), a 2D physics engine for the web. The b5 integration simplifies Matter.js into easy-to-use blocks.
+</Info>
+
+## Engine Setup
+
+### matter_startEngine
+
+Initializes the Matter.js physics engine. This block must be called ONCE in the Factory Variable section before using any other physics blocks.
+
+**Filter:** `setup`, `unique` - Can only be used in Variable section and only one instance allowed.
+
+**Example Usage:**
+
+From the Physics example:
+
+```json
+{
+  "name": "matter_startEngine",
+  "source": "library"
+}
+```
+
+In context:
+
+```
+Variable: engine
+  Line 0: [matter_startEngine]
+          // Initializes physics world
+          // Enables gravity and collision detection
+          
+Playground:
+  // Now you can use physics blocks
+  [matter_box]
+  [matter_ball]
+  [matter_ground]
+```
+
+<Warning>
+**Required Initialization**: You MUST create a variable with `matter_startEngine` before using any physics blocks. Without it, physics blocks will not work.
+</Warning>
+
+## Physics Objects
+
+### matter_box
+
+Creates a rectangular physics body that responds to gravity and collisions.
+
+<ParamField path="trigger" type="boolean">
+  When true, creates a new box (optional - can create every frame if always true)
+</ParamField>
+
+<ParamField path="x" type="number" required>
+  Initial X position (center of box)
+</ParamField>
+
+<ParamField path="y" type="number" required>
+  Initial Y position (center of box)
+</ParamField>
+
+<ParamField path="width" type="number" required>
+  Width of the box in pixels
+</ParamField>
+
+<ParamField path="height" type="number" required>
+  Height of the box in pixels
+</ParamField>
+
+**Example Usage:**
+
+From the Physics example:
+
+```json
+{
+  "name": "matter_box",
+  "source": "library",
+  "input": {
+    "0": ["0", "0", "0"],  // mouseIsPressed trigger
+    "1": ["1", "0", "0"],  // mouseX position
+    "2": ["1", "0", "1"],  // mouseY position
+    "3": ["1", "1", "0"],  // random width
+    "4": ["1", "1", "1"]   // random height
+  }
+}
+```
+
+In context:
+
+```
+Line 0: [mouseIsPressed] -> trigger
+        [backgroundPicker: gray]
+Line 1: [mouse] -> x, y
+        [random size] <- mouseIsPressed → w, h (10-40 range)
+Line 2: [strokePicker: white]
+Line 3: [fillPicker: dark gray]
+Line 4: [matter_box] <- mouseIsPressed, mouseX, mouseY, w, h
+        // Creates boxes at mouse position when clicked
+        // Boxes fall and collide with each other and ground
+```
+
+Created boxes:
+- Fall due to gravity
+- Collide with other physics objects
+- Rotate and tumble realistically
+- Are drawn with current fill and stroke colors
+
+### matter_ball
+
+Creates a circular physics body.
+
+<ParamField path="trigger" type="boolean">
+  When true, creates a new ball
+</ParamField>
+
+<ParamField path="x" type="number" required>
+  Initial X position (center)
+</ParamField>
+
+<ParamField path="y" type="number" required>
+  Initial Y position (center)
+</ParamField>
+
+<ParamField path="radius" type="number" required>
+  Radius of the ball in pixels
+</ParamField>
+
+**Example Usage:**
+
+```
+Line 0: [mouseClicked] -> trigger (once per click)
+        [mouse] -> x, y
+        [numberSlider: 20, 10-50] -> radius
+Line 1: [fillPicker: red]
+Line 2: [matter_ball] <- mouseClicked, mouseX, mouseY, radius
+        // Creates bouncing balls at mouse position
+        // Balls roll and bounce naturally
+```
+
+### matter_ground
+
+Creates a static (non-moving) platform that other objects can land on.
+
+<ParamField path="y" type="number" required>
+  Y position of the ground (height on canvas)
+</ParamField>
+
+<ParamField path="thickness" type="number">
+  Thickness of the ground platform (optional)
+</ParamField>
+
+**Example Usage:**
+
+From the Physics example:
+
+```json
+{
+  "name": "matter_ground",
+  "source": "library",
+  "input": { 
+    "0": ["1", "2", "0"],  // 95% of canvas height
+    "1": ["1", "3", "0"]   // thickness (true = default)
+  }
+}
+```
+
+In context:
+
+```
+Line 0: [canvasSize] -> width, height
+Line 1: [fractionSlider: 95, 0-100] <- height → 95% of height
+        [true] -> use default thickness
+Line 4: [matter_ground] <- groundY, true
+        // Creates ground near bottom of canvas
+        // Objects fall and land on it
+```
+
+The ground:
+- Is static (doesn't move or fall)
+- Stops falling objects
+- Spans the full width of the canvas
+- Can be positioned anywhere vertically
+
+## Common Physics Patterns
+
+### Pattern 1: Click to Spawn Objects
+
+From the Physics example:
+
+```
+Variable: engine
+  [matter_startEngine]
+  
+Playground:
+  Line 0: [mouseIsPressed] -> spawn trigger
+          [backgroundPicker: gray]
+  Line 1: [mouse] -> spawn position
+          [random size] <- trigger → random dimensions
+  Line 2: [strokePicker: white]
+  Line 3: [fillPicker: dark gray]
+  Line 4: [matter_box] <- trigger, x, y, w, h
+          [matter_ground] <- groundY
+          [frameRateShow]
+```
+
+Click and drag to spawn boxes that fall and pile up.
+
+### Pattern 2: Continuous Rain
+
+```
+Variable: engine
+  [matter_startEngine]
+  
+Playground:
+  Line 0: [canvasSize] -> width
+          [random] <- true, 0, width → random X
+          [number: 0] -> top of canvas
+  Line 1: [fillPicker: blue]
+  Line 2: [matter_ball] <- true, randomX, 0, 10
+          // Creates ball at random X position at top
+          // New ball every frame = rain effect
+  Line 3: [matter_ground] <- height, 20
+          // Balls accumulate on ground
+```
+
+<Warning>
+**Performance**: Creating physics objects every frame (trigger: true) can slow down your sketch. For continuous spawning, consider:
+- Smaller objects
+- Lower frame rate: `[frameRate] <- 30`  
+- Remove old objects (requires advanced blocks)
+- Spawn less frequently (use frame counter)
+</Warning>
+
+### Pattern 3: Positioned Ground
+
+```
+Variable: engine
+  [matter_startEngine]
+  
+Playground:
+  Line 0: [canvasSize] -> height
+          [fractionSlider: 95, 0-100] <- height → position
+  Line 1: [matter_ground] <- 95% height, default thickness
+          // Ground near bottom but not at edge
+          // Leaves space for objects to rest on bottom
+```
+
+### Pattern 4: Multiple Platforms
+
+```
+Line 0: [canvasSize] -> height
+Line 1: [multiply] <- height, 0.5 → middle
+        [multiply] <- height, 0.8 → lower
+        [multiply] <- height, 0.95 → ground
+Line 2: [matter_ground] <- middle, 5 (thin platform)
+        [matter_ground] <- lower, 5
+        [matter_ground] <- ground, 20 (thick ground)
+        // Creates multi-level platforms
+```
+
+### Pattern 5: Colored Physics Objects
+
+```
+Line 0: [mouseClicked] -> trigger
+        [mouse] -> x, y
+Line 1: [randomRGB] <- trigger → R, G, B
+Line 2: [fillRGBA] <- R, G, B
+        [strokePicker: black]
+Line 3: [matter_ball] <- trigger, x, y, 25
+        // Each click creates ball with random color
+```
+
+### Pattern 6: Size Variety
+
+From Physics example's `random size` function:
+
+```
+Function: random size (input: trigger)
+  Line 0: [bool: trigger]
+          [number: 10] -> min
+          [number: 40] -> max
+  Line 2: [random] <- trigger, 10, 40 → width
+          [random] <- trigger, 10, 40 → height
+          
+Playground:
+  [mouseIsPressed] -> trigger
+  [random size] <- trigger → w, h
+  [matter_box] <- ..., w, h
+  // Creates varied-size boxes
+```
+
+## Physics Behavior
+
+### Gravity
+
+<Info>
+All physics objects experience downward gravity by default. Objects fall at a realistic acceleration rate, similar to Earth's gravity.
+</Info>
+
+### Collisions
+
+Physics objects automatically:
+- Collide with each other
+- Transfer momentum realistically
+- Don't pass through each other
+- Stack and pile naturally
+
+### Rotation
+
+Boxes naturally rotate when:
+- They hit the ground at an angle
+- They collide with other objects off-center
+- They tumble and roll
+
+Balls roll smoothly on surfaces.
+
+### Static vs Dynamic
+
+- **Dynamic objects** (`matter_box`, `matter_ball`): Move, fall, rotate, respond to forces
+- **Static objects** (`matter_ground`): Fixed in place, provide solid surfaces
+
+## Physics Tips
+
+<Tip>
+**Initialize First**: Always create the physics engine in a Variable before using physics blocks:
+```
+Variable: engine
+  [matter_startEngine]
+```
+This must happen before the Playground runs.
+</Tip>
+
+<Tip>
+**Color Before Creation**: Set fill and stroke colors BEFORE creating physics objects:
+```
+[fillPicker: red]     // Set color first
+[matter_ball] <- ...  // Ball is created red
+```
+The color is applied when the object is created.
+</Tip>
+
+<Tip>
+**Control Spawn Rate**: For click-to-spawn:
+- `[mouseClicked]` - one object per click
+- `[mouseIsPressed]` - continuous stream while held
+
+For automatic spawning, use frame counting:
+```
+[frameCount] -> frames
+[modulo] <- frames, 30 → remainder
+[equals] <- remainder, 0 → trigger every 0.5 seconds
+```
+</Tip>
+
+<Tip>
+**Ground Positioning**: Use fractionSlider for adjustable ground position:
+```
+[canvasSize] -> height
+[fractionSlider: 95, 0-100] <- height
+[matter_ground] <- slider output
+// Adjust ground height in real-time
+```
+</Tip>
+
+<Warning>
+**Performance Monitoring**: Physics calculations are intensive. Use `frameRateShow` to monitor performance:
+```
+[matter_box] <- creating many objects
+[frameRateShow] <- check if FPS is dropping
+```
+If FPS drops significantly:
+- Reduce spawn rate
+- Use smaller objects
+- Lower frame rate to 30 FPS
+</Warning>
+
+<Info>
+**Physics World Bounds**: Physics objects can move outside the canvas bounds. To contain them, create ground platforms on all sides:
+```
+[matter_ground] <- bottom
+// Add custom static walls on left, right, top if needed
+```
+</Info>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Physics objects don't appear">
+    **Solution**: Make sure you initialized the engine:
+    ```
+    Variable: engine
+      [matter_startEngine]
+    ```
+    This must be created before using physics blocks.
+  </Accordion>
+
+  <Accordion title="Objects fall through the ground">
+    **Solution**: Ensure ground is positioned correctly:
+    ```
+    [canvasSize] -> height  
+    [matter_ground] <- height × 0.95
+    ```
+    Ground Y position should be less than canvas height.
+  </Accordion>
+
+  <Accordion title="Sketch slows down over time">
+    **Solution**: Too many physics objects. Either:
+    - Reduce spawn rate (use `mouseClicked` instead of `mouseIsPressed`)
+    - Lower frame rate: `[frameRate] <- 30`
+    - Implement object removal (requires custom blocks)
+  </Accordion>
+
+  <Accordion title="Objects all the same color">
+    **Solution**: Set color BEFORE creating each object:
+    ```
+    [randomRGB] <- trigger → colors
+    [fillRGBA] <- colors
+    [matter_box] <- ... // This box gets the random color
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Physics
+
+While the current examples show basic physics blocks, Matter.js supports many advanced features that may be available in b5:
+
+- Custom forces and velocities
+- Friction and restitution (bounciness)
+- Constraints and joints
+- Sensors and triggers  
+- Composite bodies (multiple shapes together)
+- World properties (gravity direction, strength)
+
+Check the block search for additional Matter.js blocks beyond the basic ones documented here.

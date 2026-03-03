@@ -1,0 +1,163 @@
+---
+title: Playground
+description: The main code canvas running at 60 FPS
+---
+
+The Playground is your main code canvas where blocks are executed continuously at 60 frames per second by default. It's similar to the `draw()` function in p5.js.
+
+## How It Works
+
+The Playground executes blocks sequentially:
+
+<Steps>
+  <Step title="Left to Right">
+    Blocks on the same line execute from left to right
+  </Step>
+  
+  <Step title="Top to Bottom">
+    After completing a line, execution moves to the next line down
+  </Step>
+  
+  <Step title="60 FPS Loop">
+    The entire canvas runs 60 times per second for smooth animations
+  </Step>
+</Steps>
+
+<Note>
+  This sequential execution is what makes b5 unique among node-based programming languages. Position matters!
+</Note>
+
+## Canvas Specifications
+
+<CodeGroup>
+```js Configuration
+{
+  maxLineCount: 199,     // Maximum vertical lines
+  maxBlockCount: 12,     // Maximum blocks per line
+  frameRate: 60          // Frames per second
+}
+```
+</CodeGroup>
+
+The Playground can hold up to 199 lines with 12 blocks per line, giving you plenty of space for complex programs.
+
+## Adding Blocks
+
+There are several ways to add blocks to the Playground:
+
+<Tabs>
+  <Tab title="Block Search">
+    **Double-click** on any empty block room to open the block search interface. This is the quickest way to add blocks.
+    
+    See [Block Search](/editor/block-search) for details.
+  </Tab>
+  
+  <Tab title="Drag from Factory">
+    Drag custom variable, function, or object blocks directly from the Factory preview into the Playground.
+    
+    Custom blocks appear alongside predefined blocks and can be used just like any other block.
+  </Tab>
+</Tabs>
+
+## Effect Blocks
+
+Effect blocks modify the behavior of other blocks through their contextual relationships, rather than through wire connections.
+
+<Warning>
+  Effect blocks like `fill`, `stroke`, and `scale` affect blocks that come after them in the execution order - just like in p5.js.
+</Warning>
+
+### Visualizing Effect Scope
+
+When you select an effect block, the background grid cells change color to show its effective range. This visual feedback helps you understand which blocks are influenced by the effect.
+
+Unlike text-based languages where the drawing context is hidden, b5 makes these relationships explicit and visible.
+
+## Navigation Controls
+
+### Panning the Canvas
+
+**Click and hold** on any empty block room, then drag to pan around the canvas. This lets you navigate large programs that extend beyond the visible area.
+
+<Tip>
+  The canvas remembers your pan position, so you can work on different sections of your code without losing your place.
+</Tip>
+
+### Zooming
+
+**Scroll** on the canvas to zoom in and out:
+
+- **Zoom range**: 0.5x to 2x
+- **Scroll up**: Zoom in
+- **Scroll down**: Zoom out
+
+The zoom level is smoothly interpolated and saved with your canvas style.
+
+### Scrolling
+
+Hold modifier keys while scrolling to navigate instead of zoom:
+
+- **Shift + Scroll**: Scroll horizontally
+- **Cmd/Ctrl + Scroll**: Scroll vertically
+
+## Grid System
+
+The Playground uses a grid system with:
+
+- **Line numbers**: Displayed on the left edge
+- **Block alphabets**: Displayed along the top edge
+- **Block rooms**: Grid cells where blocks can be placed
+
+### Background Colors
+
+Block rooms can display different background colors based on:
+
+- Color effect blocks (when selected)
+- The scope of effect blocks
+- Visual feedback for dragging and dropping
+
+## Live Execution
+
+The Playground continuously executes at 60 FPS, which means:
+
+- Changes are immediately reflected in the Viewer
+- Animations run smoothly
+- Interactive programs respond in real-time
+
+<Note>
+  You can pause execution from the Viewer controls without stopping the editor. This is useful for inspecting specific frames or debugging.
+</Note>
+
+## Working with the Viewer
+
+The Playground's output is displayed in the Viewer, which can be:
+
+- Paused and resumed
+- Refreshed to restart from the beginning
+- Minimized to the corner for more workspace
+- Captured as a PNG image
+
+See [Viewer](/editor/viewer) for complete controls.
+
+## Canvas State
+
+The canvas maintains several types of state:
+
+- **Position**: Left and top offsets from panning
+- **Scale**: Current zoom level (0.5x to 2x)
+- **Blocks**: All blocks and their data
+- **Line styles**: Modified drawing styles per line
+
+This state is automatically saved to your session and included when you save your project.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Block Search" icon="magnifying-glass" href="/editor/block-search">
+    Learn how to quickly add blocks
+  </Card>
+  
+  <Card title="Navigation" icon="arrows-up-down-left-right" href="/editor/navigation">
+    Master mouse and keyboard controls
+  </Card>
+</CardGroup>

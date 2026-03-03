@@ -1,0 +1,361 @@
+---
+title: Mouse & Keyboard Input Blocks
+description: Blocks for capturing mouse and keyboard interaction
+---
+
+## Overview
+
+Mouse and keyboard blocks capture user input, enabling interactive sketches. These blocks provide positions, button states, and key presses.
+
+## Mouse Position
+
+### mouse
+
+Provides the current mouse position relative to the canvas.
+
+**Outputs:**
+- `0`: mouseX - horizontal position in pixels from left edge
+- `1`: mouseY - vertical position in pixels from top edge
+
+**Example Usage:**
+
+From the Line Drawing example:
+
+```json
+{
+  "name": "mouse",
+  "source": "original",
+  "output": {
+    "0": [
+      ["4", "3", "2"],  // mouseX to lineXY
+      ["4", "4", "2"]
+    ],
+    "1": [
+      ["4", "3", "3"],  // mouseY to lineXY
+      ["4", "4", "3"]
+    ]
+  }
+}
+```
+
+In context:
+
+```
+Line 1: [mouse] -> x, y outputs
+        // x and y track cursor position
+        
+Line 4: [lineXY] <- x1: 0, y1: 0, x2: mouseX, y2: mouseY
+        [lineXY] <- x1: width, y1: height, x2: mouseX, y2: mouseY
+        // Two lines follow the cursor from opposite corners
+```
+
+The `mouse` block continuously outputs the current cursor position, updating 60 times per second.
+
+From the Physics example:
+
+```
+Line 1: [mouse] -> x, y
+Line 4: [matter_box] <- x: mouseX, y: mouseY, w, h
+        // Creates physics boxes at mouse position
+```
+
+### Mouse Position Ranges
+
+<Info>
+**Coordinate System**:
+- `mouseX: 0` = left edge of canvas
+- `mouseX: width` = right edge of canvas  
+- `mouseY: 0` = top edge of canvas
+- `mouseY: height` = bottom edge of canvas
+- Mouse position outside canvas still reports values (can be negative or > canvas size)
+</Info>
+
+## Mouse Button State
+
+### mouseIsPressed
+
+Reports whether the mouse button is currently pressed.
+
+**Output:**
+- `true` while mouse button is held down
+- `false` when mouse button is released
+
+**Example Usage:**
+
+From the Bounce Ball example:
+
+```json
+{
+  "name": "mouseIsPressed",
+  "source": "original",
+  "output": {
+    "0": [
+      ["2", "2", "0"],  // to randomRGB trigger
+      ["2", "1", "0"]   // to toggle
+    ]
+  }
+}
+```
+
+In context:
+
+```
+Line 1: [mouseIsPressed] -> boolean state
+Line 2: [randomRGB] <- mouseIsPressed (randomize while pressed)
+        [toggle] <- mouseIsPressed (toggle state)
+Line 3: [strokeRGBA] <- random R, G, B
+        [stopDraw] <- toggle state
+Line 4: [lineXY] <- only draws when conditions met
+```
+
+From the Physics example:
+
+```
+Line 0: [mouseIsPressed] -> condition
+Line 1: [random size] <- mouseIsPressed (trigger random size)
+Line 4: [matter_box] <- creates box when mouse pressed
+```
+
+### mouseClicked
+
+Detects when the mouse button is clicked (pressed and released).
+
+**Output:**
+- `true` for ONE frame when click occurs
+- `false` all other frames
+
+**Example Usage:**
+
+```
+Line 0: [mouseClicked] -> one-time trigger
+Line 1: [toggle] <- mouseClicked
+        // State flips once per click (not continuously)
+Line 2: [randomRGB] <- mouseClicked  
+        // Randomizes once per click (not every frame)
+```
+
+<Tip>
+**mouseIsPressed vs mouseClicked**:
+- `mouseIsPressed`: Continuous state - `true` while button held down
+- `mouseClicked`: Momentary trigger - `true` for only one frame on click
+- Use `mouseIsPressed` for continuous effects (drawing while held)
+- Use `mouseClicked` for discrete actions (toggle on each click)
+</Tip>
+
+## Keyboard Input
+
+### keyIsPressed
+
+Reports whether any key is currently pressed.
+
+**Output:**
+- `true` while any key is held down
+- `false` when no keys are pressed
+
+**Example Usage:**
+
+```
+Line 0: [keyIsPressed] -> boolean state
+Line 1: [stopDraw] <- keyIsPressed
+        [circle] <- only draws when NO key is pressed
+        
+// OR inverted:
+
+Line 0: [keyIsPressed] -> state
+        [toggle] <- state → inverted
+Line 1: [stopDraw] <- inverted
+        [circle] <- only draws when key IS pressed
+```
+
+### key (if available)
+
+Provides the currently pressed key as a string.
+
+<ParamField path="output" type="string">
+  The character of the currently pressed key
+</ParamField>
+
+**Example Usage:**
+
+```
+Line 0: [key] -> current key character
+        // Could be used to control different behaviors per key
+```
+
+## Common Input Patterns
+
+### Pattern 1: Follow Mouse
+
+```
+Playground:
+  Line 0: [mouse] -> x, y
+  Line 1: [circle] <- mouseX, mouseY, 50
+          // Circle follows cursor
+```
+
+### Pattern 2: Draw When Pressed
+
+```
+Line 0: [mouseIsPressed] -> condition
+Line 1: [stopDraw] <- NOT mouseIsPressed
+        [mouse] -> x, y
+Line 2: [circle] <- x, y, 10
+        // Draws circles only while mouse pressed
+```
+
+### Pattern 3: Click to Randomize
+
+```
+Line 0: [mouseClicked] -> trigger (one frame only)
+Line 1: [randomRGB] <- trigger
+        // New random color only on click, not every frame
+Line 2: [fillRGBA] <- R, G, B
+Line 3: [circle] <- x, y, 100
+```
+
+### Pattern 4: Lines to Cursor
+
+From the Line Drawing example:
+
+```
+Variable: canvasCorners
+  [number: 0] -> top-left
+  [canvasSize] -> width, height (bottom-right)
+  
+Playground:
+  Line 0: [blackBG] <- fade background
+  Line 1: [mouseIsPressed] -> drawing condition
+          [canvasCorners] -> 0, 0, width, height
+          [mouse] -> mouseX, mouseY
+  Line 2: [randomRGB] <- mouseIsPressed → R, G, B
+          [toggle] <- mouseIsPressed → stop condition
+  Line 3: [strokeRGBA] <- R, G, B
+          [stopDraw] <- toggle
+  Line 4: [lineXY] <- (0, 0) to (mouseX, mouseY)
+          [lineXY] <- (width, height) to (mouseX, mouseY)
+```
+
+Creates an X pattern of lines following the cursor, with random colors when pressed.
+
+### Pattern 5: Interactive Physics
+
+From the Physics example:
+
+```
+Line 0: [mouseIsPressed] -> spawn condition
+Line 1: [mouse] -> x, y position
+        [random size] <- mouseIsPressed → w, h
+Line 4: [matter_box] <- mouseX, mouseY, w, h
+        // Click and drag to spawn physics boxes at cursor
+```
+
+### Pattern 6: Keyboard Toggle
+
+```
+Line 0: [keyIsPressed] -> key state
+Line 1: [toggle] <- keyIsPressed → mode
+        
+// Use mode to switch behaviors:
+Line 2: [stopDraw] <- mode
+        [fillPicker: red] <- mode A behavior
+Line 3: [stopDraw] <- NOT mode  
+        [fillPicker: blue] <- mode B behavior
+```
+
+### Pattern 7: Distance from Mouse
+
+```
+Line 0: [mouse] -> mouseX, mouseY
+        [canvasSize] -> width, height
+        [divide: 2] -> centerX, centerY
+Line 1: [subtract] <- mouseX, centerX → dx
+        [subtract] <- mouseY, centerY → dy
+Line 2: [multiply] <- dx, dx → dx²
+        [multiply] <- dy, dy → dy²
+Line 3: [add] <- dx², dy² → distance²
+        // Use distance² to affect visuals (size, color, etc.)
+```
+
+### Pattern 8: Map Mouse to Colors
+
+From the Bounce Ball example (adapted):
+
+```
+Line 0: [mouse] -> x, y
+Line 1: [fillRGBA] <- x as red, y as green, 128 as blue
+        [circle] <- mouseX, mouseY, 50
+        // Circle color changes based on position
+        // Red increases moving right, green increases moving down
+```
+
+## Advanced Input Techniques
+
+### Mouse Smoothing
+
+```
+Variable: smoothedX
+  [mouse] -> x
+  [multiply: 0.1] -> x × 0.1
+  // Store and add to previous smoothedX × 0.9
+  // Creates smooth following (requires custom block)
+```
+
+### Click Counter
+
+```
+Variable: clickCount
+  [number: 0] -> initial count
+  
+Playground:
+  [mouseClicked] -> trigger
+  [add] <- clickCount, 1 → new count
+  // Store back to clickCount (requires custom block)
+  // Display or use count for logic
+```
+
+### Drag Detection
+
+```
+Line 0: [mouseIsPressed] -> dragging state
+        [mouse] -> current x, y
+        // Compare to previous x, y to detect movement
+        // (requires storing previous position)
+```
+
+## Tips for Input Blocks
+
+<Tip>
+**Frame Rate Awareness**: Mouse and keyboard blocks update 60 times per second in the Playground. Rapid movement might skip pixels - use smoothing for continuous drawing.
+</Tip>
+
+<Tip>
+**Boundary Checking**: Mouse position can be outside the canvas:
+```
+[mouse] -> x, y
+[canvasSize] -> width, height
+[lessThan] <- x, width → xValid
+[lessThan] <- y, height → yValid  
+[AND] <- xValid, yValid → inBounds
+```
+</Tip>
+
+<Tip>
+**State vs Trigger**:
+- **State blocks** (`mouseIsPressed`, `keyIsPressed`): Use for continuous effects
+- **Trigger blocks** (`mouseClicked`): Use for one-time actions
+- Pair triggers with `toggle` for persistent state changes
+</Tip>
+
+<Warning>
+**Multiple Inputs**: Be careful combining mouse and keyboard:
+```
+[mouseIsPressed] -> mouse
+[keyIsPressed] -> key
+[OR] <- mouse, key → either input active
+```
+Make sure your logic handles both input methods appropriately.
+</Warning>
+
+<Info>
+**Canvas-Relative Coordinates**: Mouse positions are relative to the canvas, not the browser window. (0, 0) is the top-left corner of your b5 canvas.
+</Info>

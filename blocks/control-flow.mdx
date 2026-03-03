@@ -1,0 +1,347 @@
+---
+title: Control Flow Blocks
+description: Blocks for controlling program execution, bouncing values, and managing state
+---
+
+## Overview
+
+Control flow blocks manage how your program executes, including conditional operations, value constraints, and state management.
+
+## Execution Control
+
+### stopDraw
+
+Stops execution of subsequent blocks when condition is true.
+
+<ParamField path="condition" type="boolean" required>
+  When true, prevents execution of blocks after this point
+</ParamField>
+
+**Example Usage:**
+
+From the Line Drawing example:
+
+```
+Line 2: [toggle] <- mouseIsPressed
+Line 3: [strokeRGBA] <- random colors
+        [stopDraw] <- toggle condition
+Line 4: [lineXY] <- only executes if stopDraw is false
+        [lineXY]
+```
+
+When `stopDraw` receives `true`:
+- Blocks before it on the same line execute (like `strokeRGBA`)
+- Blocks after it on the same line do NOT execute
+- All blocks on subsequent lines do NOT execute
+
+This creates conditional drawing where lines only appear when the condition is false.
+
+### toggle
+
+Switches between true/false states based on a trigger condition.
+
+<ParamField path="trigger" type="boolean" required>
+  When true, toggles the internal state
+</ParamField>
+
+**Output:**
+- Boolean state that flips each time trigger becomes true
+
+**Example Usage:**
+
+From the Line Drawing example:
+
+```json
+{
+  "name": "toggle",
+  "source": "original",
+  "input": { "0": ["1", "2", "0"] },
+  "output": { "0": [["3", "2", "0"]] }
+}
+```
+
+In context:
+
+```
+Line 1: [mouseIsPressed] -> true while mouse held down
+Line 2: [toggle] <- mouseIsPressed
+        // State flips: pressed → true, released → false
+Line 3: [stopDraw] <- toggle output
+        // Stops drawing when toggle is true
+```
+
+## Value Constraints
+
+### bounce
+
+Constrains a value to stay within a range, bouncing back when it hits the boundaries.
+
+<ParamField path="value" type="number" required>
+  Current value to constrain
+</ParamField>
+
+<ParamField path="min" type="number" required>
+  Minimum boundary
+</ParamField>
+
+<ParamField path="max" type="number" required>
+  Maximum boundary
+</ParamField>
+
+<ParamField path="step" type="number" required>
+  Amount to increment/decrement the value each frame
+</ParamField>
+
+**Output:**
+- Constrained value that bounces between min and max
+
+**Example Usage:**
+
+From the Bounce Ball example:
+
+```json
+{
+  "name": "bounce",
+  "source": "original",
+  "input": {
+    "0": ["1", "2", "0"],  // radius (for boundary)
+    "1": ["1", "2", "1"],  // upper X bound (width - radius)  
+    "2": ["1", "3", "0"]   // step size (7)
+  },
+  "output": {
+    "0": [
+      ["5", "3", "0"],  // x position output
+      ["5", "2", "0"]
+    ]
+  }
+}
+```
+
+In context:
+
+```
+Line 0: [numberSlider: 40, 0-50, step 5] -> radius
+Line 1: [boundaries] <- radius
+        // Outputs: lowerBound, upperX, upperY
+        [number: 7] -> step size
+        
+Line 3: [bounce] <- radius, upperX, step → x position
+        [bounce] <- radius, upperY, step → y position
+        // Both values bounce within their bounds
+        
+Line 5: [circle] <- x, y, radius
+        // Circle bounces around canvas
+```
+
+The `bounce` block:
+1. Takes current position (or initializes if first call)
+2. Adds `step` to the value
+3. If value exceeds `max`, it reverses direction and bounces back
+4. If value goes below `min` (which is radius), it reverses direction
+5. Outputs the new constrained position
+
+This creates the classic bouncing ball animation where the ball reverses direction when hitting canvas edges.
+
+## Random Generation
+
+### random
+
+Generates a random number within a specified range.
+
+<ParamField path="trigger" type="boolean">
+  Optional trigger - when true, generates new random value
+</ParamField>
+
+<ParamField path="min" type="number" required>
+  Minimum value (inclusive)
+</ParamField>
+
+<ParamField path="max" type="number" required>
+  Maximum value (inclusive)
+</ParamField>
+
+**Output:**
+- Random number between min and max
+
+**Example Usage:**
+
+From the Line Drawing example's `randomRGB` function:
+
+```
+Function: randomRGB (input: trigger)
+  Line 0: [bool: trigger] -> when to randomize
+          [number: 170] -> min
+          [number: 220] -> max
+  Line 2: [random] <- trigger, 170, 220 → R
+          [random] <- trigger, 170, 220 → G  
+          [random] <- trigger, 170, 220 → B
+
+Playground:
+  Line 0: [mouseIsPressed] -> trigger
+  Line 1: [randomRGB] <- trigger → R, G, B
+  Line 2: [strokeRGBA] <- R, G, B
+```
+
+When mouse is pressed, three new random color values are generated.
+
+From the Physics example:
+
+```
+Function: random size (input: trigger)
+  Line 2: [random] <- trigger, 10, 40 → width
+          [random] <- trigger, 10, 40 → height
+
+Playground:
+  Line 0: [mouseIsPressed] -> trigger  
+  Line 1: [random size] <- trigger → w, h
+  Line 4: [matter_box] <- x, y, w, h
+```
+
+Each click creates a physics box with random dimensions.
+
+## Common Control Flow Patterns
+
+### Pattern 1: Bouncing Animation
+
+```
+Function: boundaries (input: radius)
+  [number: 0] -> minimum
+  [add] <- 0, radius → lower bound
+  [canvasSize] -> width, height
+  [subtract] <- width, radius → upper X
+  [subtract] <- height, radius → upper Y
+  
+Playground:
+  Line 0: [numberSlider: 40] -> radius
+  Line 1: [boundaries] <- radius → lower, upperX, upperY
+          [number: 7] -> speed
+  Line 3: [bounce] <- radius, upperX, speed → x
+          [bounce] <- radius, upperY, speed → y
+  Line 5: [circle] <- x, y, radius
+```
+
+Creates a circle that bounces within canvas boundaries.
+
+### Pattern 2: Conditional Execution
+
+```
+Line 0: [mouseIsPressed] -> condition
+Line 1: [stopDraw] <- condition
+        [circle] <- only draws if NOT pressed
+        
+// OR inverted:
+
+Line 0: [mouseIsPressed] -> condition
+        [toggle] <- condition → inverted
+Line 1: [stopDraw] <- inverted  
+        [circle] <- only draws if pressed
+```
+
+### Pattern 3: Triggered Randomization
+
+```
+Function: randomColor (input: trigger)
+  [random] <- trigger, 0, 255 → R
+  [random] <- trigger, 0, 255 → G
+  [random] <- trigger, 0, 255 → B
+  
+Playground:
+  [mouseClicked] -> one-time trigger per click
+  [randomColor] <- trigger → R, G, B
+  [fillRGBA] <- R, G, B
+  [circle] <- colored circle (color changes on click)
+```
+
+### Pattern 4: State Toggle
+
+```
+Playground:
+  Line 0: [mouseClicked] -> trigger (true for one frame on click)
+  Line 1: [toggle] <- trigger → state (flips each click)
+  
+  // Branch based on state:
+  Line 2: [stopDraw] <- state
+          [fillPicker: red]
+          [circle] <- red when state is false
+  
+  Line 3: [stopDraw] <- NOT state (inverted)
+          [fillPicker: blue]  
+          [circle] <- blue when state is true
+```
+
+Creates a click-to-toggle color effect.
+
+### Pattern 5: Boundary-Aware Movement
+
+```
+Playground:
+  Line 0: [mouse] -> x, y
+  Line 1: [canvasSize] -> width, height
+  Line 2: [lessThan] <- x, width → xInBounds
+          [lessThan] <- y, height → yInBounds
+  Line 3: [AND] <- xInBounds, yInBounds → inBounds
+  Line 4: [stopDraw] <- NOT inBounds
+          [circle] <- x, y (only draws when mouse in bounds)
+```
+
+### Pattern 6: Multi-Bounce System
+
+```
+Playground:
+  // Horizontal bouncing
+  Line 0: [bounce] <- 0, width, speedX → x
+  
+  // Vertical bouncing  
+  Line 1: [bounce] <- 0, height, speedY → y
+  
+  // Diagonal bouncing
+  Line 2: [bounce] <- 0, width, speedX → x2
+          [bounce] <- 0, height, speedY → y2
+  
+  Line 3: [circle] <- x, y, 20
+          [circle] <- x2, y2, 20
+          // Two independently bouncing circles
+```
+
+## Tips for Control Flow
+
+<Tip>
+**stopDraw for Conditionals**: Use `stopDraw` to create if/then behavior:
+- Everything before `stopDraw`: always executes
+- Everything after `stopDraw`: only executes when condition is `false`
+</Tip>
+
+<Tip>
+**bounce for Constrained Motion**: The `bounce` block is perfect for:
+- Bouncing balls
+- Screen-saver style animations
+- Any movement that should stay within bounds
+- Values that oscillate between min and max
+</Tip>
+
+<Tip>
+**toggle for State Management**: Use `toggle` to create on/off switches:
+```
+[mouseClicked] -> momentary trigger
+[toggle] <- trigger → persistent state (flips each click)
+```
+</Tip>
+
+<Tip>
+**Random with Triggers**: Control when randomization happens:
+- `[random] <- true, min, max` - generates new value every frame
+- `[random] <- mousePressed, min, max` - new value only when pressed
+- `[random] <- mouseClicked, min, max` - new value once per click
+</Tip>
+
+<Warning>
+**Bounce Needs Initial Value**: The `bounce` block maintains internal state. On first call, it initializes the value. The block "remembers" the current position between frames.
+</Warning>
+
+<Info>
+**Frame-Based Execution**: Remember that the Playground runs 60 times per second:
+- `bounce` updates position each frame
+- `random` with continuous trigger generates new value each frame  
+- `toggle` with continuous trigger might flip rapidly
+- Use one-time triggers (like `mouseClicked`) for single-frame events
+</Info>

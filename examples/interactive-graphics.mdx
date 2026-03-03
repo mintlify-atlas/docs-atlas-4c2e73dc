@@ -1,0 +1,553 @@
+---
+title: "Interactive Graphics"
+description: "Create interactive experiences using mouse input, camera data, and user controls in b5"
+---
+
+## Overview
+
+Interactive graphics respond to user input in real-time. This guide covers:
+- Mouse position and click detection
+- Using sliders for parameter control
+- Working with camera input
+- Conditional logic for interactivity
+- Physics simulation with Matter.js
+
+<Tip>
+All interactive examples run at 60 FPS, providing smooth real-time responses to user input.
+</Tip>
+
+## Mouse Input
+
+### Mouse Position
+
+The `mouse` block provides real-time cursor coordinates:
+
+```json
+{
+  "name": "mouse",
+  "output": {
+    "0": [["line", "block", "node"]],  // mouseX
+    "1": [["line", "block", "node"]]   // mouseY
+  }
+}
+```
+
+<ParamField path="output.0" type="number">
+  Current X position of the mouse cursor
+</ParamField>
+<ParamField path="output.1" type="number">
+  Current Y position of the mouse cursor
+</ParamField>
+
+### Mouse Press Detection
+
+The `mouseIsPressed` block outputs a boolean value:
+
+```json
+{
+  "name": "mouseIsPressed",
+  "output": {
+    "0": [
+      ["4", "0", "0"],
+      ["1", "1", "0"]
+    ]
+  }
+}
+```
+
+This block returns `true` when any mouse button is pressed, `false` otherwise.
+
+## Line Drawing Example
+
+The line drawing example demonstrates mouse-based interactivity:
+
+<Steps>
+  <Step title="Detect Mouse Press">
+    The `mouseIsPressed` block triggers color changes and drawing state:
+    
+    ```json
+    {
+      "name": "mouseIsPressed",
+      "output": {
+        "0": [
+          ["2", "2", "0"],  // to toggle block
+          ["2", "1", "0"]   // to randomRGB function
+        ]
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Generate Random Colors">
+    The custom `randomRGB` function creates new colors on mouse press:
+    
+    ```json
+    {
+      "name": "randomRGB",
+      "source": "custom",
+      "input": { "0": ["1", "2", "0"] },
+      "output": {
+        "0": [["3", "1", "0"]],  // red value
+        "1": [["3", "1", "1"]],  // green value
+        "2": [["3", "1", "2"]]   // blue value
+      }
+    }
+    ```
+    
+    <Accordion title="View randomRGB implementation">
+      ```json
+      {
+        "blocks": {
+          "0": {
+            "0": {
+              "name": "bool",
+              "input": { "0": null }  // function input (trigger)
+            },
+            "1": { "name": "number", "inlineData": [170] },
+            "2": { "name": "number", "inlineData": [220] }
+          },
+          "2": {
+            "0": {
+              "name": "random",
+              "input": {
+                "0": ["0", "0", "0"],  // trigger
+                "1": ["0", "1", "0"],  // min
+                "2": ["0", "2", "0"]   // max
+              }
+            }
+            // ... two more random blocks for G and B
+          }
+        }
+      }
+      ```
+      
+      The `random` block only generates new values when triggered by the boolean input.
+    </Accordion>
+  </Step>
+
+  <Step title="Track Mouse Movement">
+    The `mouse` block feeds coordinates to the line drawing:
+    
+    ```json
+    {
+      "name": "mouse",
+      "output": {
+        "0": [
+          ["4", "3", "2"],  // to first line x2
+          ["4", "4", "2"]   // to second line x2
+        ],
+        "1": [
+          ["4", "3", "3"],  // to first line y2
+          ["4", "4", "3"]   // to second line y2
+        ]
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Draw Interactive Lines">
+    Lines are drawn from canvas corners to the mouse position:
+    
+    ```json
+    {
+      "name": "lineXY",
+      "input": {
+        "0": ["1", "3", "0"],  // from top-left x
+        "1": ["1", "3", "0"],  // from top-left y
+        "2": ["1", "4", "0"],  // to mouseX
+        "3": ["1", "4", "1"]   // to mouseY
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Toggle Drawing State">
+    A `toggle` block changes state on each click:
+    
+    ```json
+    {
+      "name": "toggle",
+      "input": { "0": ["1", "2", "0"] },
+      "output": { "0": [["3", "2", "0"]] }
+    },
+    {
+      "name": "stopDraw",
+      "input": { "0": ["2", "2", "0"] }
+    }
+    ```
+    
+    This allows users to pause/resume drawing by clicking.
+  </Step>
+</Steps>
+
+## Parameter Controls with Sliders
+
+### Number Sliders
+
+Sliders provide intuitive parameter adjustment. From the bounce ball example:
+
+```json
+{
+  "name": "numberSlider",
+  "inlineData": [40, 0, 50, 5],
+  "output": {
+    "0": [
+      ["5", "3", "2"],
+      ["1", "2", "0"]
+    ]
+  }
+}
+```
+
+<ParamField path="inlineData[0]" type="number">
+  Default value (40)
+</ParamField>
+<ParamField path="inlineData[1]" type="number">
+  Minimum value (0)
+</ParamField>
+<ParamField path="inlineData[2]" type="number">
+  Maximum value (50)
+</ParamField>
+<ParamField path="inlineData[3]" type="number">
+  Step size (5)
+</ParamField>
+
+### Fraction Sliders
+
+For physics simulations, fraction sliders provide percentage-based control:
+
+```json
+{
+  "name": "fractionSlider",
+  "input": { "0": ["0", "2", "1"] },
+  "inlineData": [95, 0, 100, 5],
+  "output": { "0": [["4", "1", "0"]] }
+}
+```
+
+This is used in the physics example to control restitution (bounciness).
+
+## Camera Input
+
+The PoseNet example demonstrates camera integration:
+
+```json
+{
+  "name": "cameraVideo",
+  "input": {
+    "0": null,  // width (optional)
+    "1": null,  // height (optional)
+    "2": null,  // flip (optional)
+    "3": null   // facing mode (optional)
+  },
+  "output": { "0": [["1", "2", "0"]] }
+}
+```
+
+<Note>
+The `cameraVideo` block requests camera permissions and provides a video stream that can be processed by other blocks like `posenet`.
+</Note>
+
+### PoseNet Integration
+
+```json
+{
+  "name": "numberSlider",
+  "inlineData": [0, 0, 3, 1],
+  "output": { "0": [["1", "2", "1"]] }
+},
+{
+  "name": "posenet",
+  "source": "library",
+  "input": {
+    "0": ["0", "1", "0"],  // video stream
+    "1": ["0", "2", "0"],  // which pose (0 = highest confidence)
+    "2": null               // options
+  }
+}
+```
+
+The slider selects which detected pose to draw (0 for the most confident detection).
+
+<Warning>
+PoseNet is currently a demo block in b5 with limited functionality. Future versions will provide pose data as outputs for creating interactive experiences.
+</Warning>
+
+## Physics Simulation
+
+The Matter.js example shows advanced interactivity with physics:
+
+<Steps>
+  <Step title="Initialize Physics Engine">
+    Create a physics engine in the Factory as a variable:
+    
+    ```json
+    {
+      "name": "engine",
+      "type": "variable",
+      "blocks": {
+        "0": {
+          "0": {
+            "name": "matter_startEngine",
+            "source": "library"
+          }
+        }
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Generate Random Box Sizes">
+    A custom function creates random dimensions:
+    
+    ```json
+    {
+      "name": "random size",
+      "source": "custom",
+      "input": { "0": ["0", "0", "0"] },
+      "output": {
+        "0": [["4", "0", "3"]],  // width
+        "1": [["4", "0", "4"]]   // height
+      }
+    }
+    ```
+    
+    <Accordion title="View random size implementation">
+      ```json
+      {
+        "blocks": {
+          "0": {
+            "0": { "name": "bool", "input": { "0": null } },
+            "1": { "name": "number", "inlineData": [10] },
+            "2": { "name": "number", "inlineData": [40] }
+          },
+          "2": {
+            "1": {
+              "name": "random",
+              "input": {
+                "0": ["0", "0", "0"],
+                "1": ["0", "1", "0"],
+                "2": ["0", "2", "0"]
+              }
+            },
+            "2": {
+              "name": "random",
+              "input": {
+                "0": ["0", "0", "0"],
+                "1": ["0", "1", "0"],
+                "2": ["0", "2", "0"]
+              }
+            }
+          }
+        }
+      }
+      ```
+    </Accordion>
+  </Step>
+
+  <Step title="Create Physics Box on Click">
+    When mouse is pressed, spawn a new box at mouse position:
+    
+    ```json
+    {
+      "name": "matter_box",
+      "source": "library",
+      "input": {
+        "0": ["0", "0", "0"],  // mouseIsPressed trigger
+        "1": ["1", "0", "0"],  // x: mouseX
+        "2": ["1", "0", "1"],  // y: mouseY
+        "3": ["1", "1", "0"],  // width: random
+        "4": ["1", "1", "1"]   // height: random
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Add Ground">
+    Create a static physics body for boxes to land on:
+    
+    ```json
+    {
+      "name": "matter_ground",
+      "source": "library",
+      "input": {
+        "0": ["1", "2", "0"],  // height from slider
+        "1": ["1", "3", "0"]   // isStatic: true
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Display Frame Rate">
+    Show performance information:
+    
+    ```json
+    {
+      "name": "frameRateShow"
+    }
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+The physics example uses a fraction slider (95%) for restitution, making boxes slightly bouncy when they hit the ground.
+</Tip>
+
+## Interactive Patterns
+
+<AccordionGroup>
+  <Accordion title="Click to Spawn">
+    Use `mouseIsPressed` as a trigger for creation blocks:
+    ```json
+    {
+      "name": "mouseIsPressed",
+      "output": { "0": [["trigger", "input"]] }
+    },
+    {
+      "name": "createObject",
+      "input": { "trigger": ["mouse", "output"] }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Follow the Mouse">
+    Directly connect mouse coordinates to drawing positions:
+    ```json
+    {
+      "name": "mouse",
+      "output": {
+        "0": [["shape", "x"]],
+        "1": [["shape", "y"]]
+      }
+    },
+    {
+      "name": "circle",
+      "input": {
+        "0": ["mouse", "x"],
+        "1": ["mouse", "y"]
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Triggered Random Values">
+    Generate new random values only when triggered:
+    ```json
+    {
+      "name": "random",
+      "input": {
+        "0": ["mouseIsPressed"],  // trigger
+        "1": ["min"],
+        "2": ["max"]
+      }
+    }
+    ```
+    
+    Without the trigger, random generates new values every frame.
+  </Accordion>
+
+  <Accordion title="Toggle States">
+    Create on/off switches with the toggle block:
+    ```json
+    {
+      "name": "toggle",
+      "input": { "0": ["mouseIsPressed"] }
+    }
+    ```
+    
+    Output flips between true/false on each trigger.
+  </Accordion>
+</AccordionGroup>
+
+## Conditional Logic
+
+### Stop Drawing
+
+The `stopDraw` block halts execution when input is true:
+
+```json
+{
+  "name": "stopDraw",
+  "input": { "0": ["condition"] }
+}
+```
+
+All blocks after `stopDraw` in the execution order will not run when the condition is true.
+
+### True/False Blocks
+
+Hardcode boolean values for testing or default states:
+
+```json
+{
+  "name": "true",
+  "output": { "0": [["4", "1", "1"]] }
+}
+```
+
+Used in the physics example to set `isStatic: true` for the ground.
+
+## Canvas Interaction
+
+### Getting Canvas Dimensions
+
+The `canvasSize` block provides width and height:
+
+```json
+{
+  "name": "canvasSize",
+  "output": {
+    "0": [],  // width
+    "1": [["1", "2", "0"]]  // height
+  }
+}
+```
+
+Useful for responsive layouts and boundary calculations.
+
+### Background Pickers
+
+Quickly set background colors with the picker:
+
+```json
+{
+  "name": "backgroundPicker",
+  "inlineData": ["#9b9b9bff"]
+}
+```
+
+This is an effect block that sets the background color for each frame.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Triggers Wisely" icon="bolt">
+    Connect boolean inputs to random and creation blocks to control when they execute, preventing every-frame generation.
+  </Card>
+  <Card title="Limit Object Creation" icon="triangle-exclamation">
+    Creating objects every frame can impact performance. Use mouse press or other discrete events as triggers.
+  </Card>
+  <Card title="Provide Visual Feedback" icon="eye">
+    Use color changes, size variations, or other visual cues to indicate interactive states.
+  </Card>
+  <Card title="Test Performance" icon="gauge-high">
+    Use `frameRateShow` to monitor performance when creating complex interactions.
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Animations" icon="film" href="/examples/animations">
+    Combine interactivity with animation techniques
+  </Card>
+  <Card title="Drawing Shapes" icon="shapes" href="/examples/drawing-shapes">
+    Learn more about drawing and styling options
+  </Card>
+  <Card title="Input Blocks Reference" icon="keyboard" href="/reference/blocks/input">
+    Complete reference for all input blocks
+  </Card>
+  <Card title="Logic Blocks Reference" icon="diagram-project" href="/reference/blocks/logic">
+    Explore conditional logic and control flow
+  </Card>
+</CardGroup>

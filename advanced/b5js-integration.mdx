@@ -1,0 +1,499 @@
+---
+title: 'b5.js Integration'
+description: 'Learn about the b5.js rendering engine that executes your b5 projects and how to use it in external applications'
+icon: 'code'
+---
+
+## Overview
+
+b5.js is the core rendering engine that powers b5 projects. It's a JavaScript library that interprets `.b5.json` files and executes the visual programming logic you create in the b5 editor.
+
+<Note>
+b5.js is currently integrated as a submodule within the b5 editor. In the future, it will be available as a standalone library for embedding b5 projects in any website.
+</Note>
+
+## Architecture
+
+The b5 system consists of two main components:
+
+```text
+┌─────────────────────────────────────────┐
+│           b5 Editor                     │
+│  (Visual programming interface)         │
+│                                         │
+│  - Factory (Variables & Functions)      │
+│  - Playground (Main canvas)             │
+│  - Block rendering & interaction        │
+└─────────────────┬───────────────────────┘
+                  │
+                  │ Generates
+                  ▼
+         ┌────────────────┐
+         │  .b5.json file │
+         └────────┬───────┘
+                  │
+                  │ Executed by
+                  ▼
+┌─────────────────────────────────────────┐
+│            b5.js Engine                 │
+│  (Runtime execution)                    │
+│                                         │
+│  - Block interpretation                 │
+│  - Variable management                  │
+│  - Function execution                   │
+│  - Canvas rendering (via Q5.js/p5.js)   │
+└─────────────────────────────────────────┘
+```
+
+## Current Implementation
+
+In the b5 editor, b5.js is integrated through several wrapper components:
+
+### Core Imports
+
+<CodeGroup>
+```javascript b5 Object Wrapper
+// src/components/editor/b5ObjectWrapper.js
+import b5 from '../../b5.js/src/app.js'
+
+const _b = new b5() // Global b5 instance
+
+export default _b
+```
+
+```javascript Block Definitions
+// Accessing block definitions
+import _b5BlocksObject from '../../b5.js/src/blocks/blocksObjectWrapper.js'
+
+// Use block metadata for rendering and validation
+```
+
+```javascript Block Creation
+// Creating block instances
+import { makeBlock } from '../../b5.js/src/core/make.js'
+
+const newBlock = makeBlock('circle', p5Instance)
+```
+</CodeGroup>
+
+### Rendering Pipeline
+
+The b5.js engine integrates with Q5.js (a lightweight p5.js alternative) to render the canvas:
+
+```javascript
+// src/components/viewer/b5ViewerWrapper.js
+import Q5 from '../../q5xjs/q5.js'
+import _b from '../editor/b5ObjectWrapper.js'
+
+export default class B5Wrapper extends Component {
+  setup = () => {
+    if (_b.runSetup) {
+      _b.runSetup(this.myP5)  // Execute Factory variables
+    }
+  }
+
+  draw = () => {
+    if (this.loop) {
+      _b.runDraw(this.myP5)  // Execute Playground blocks (60 FPS)
+    }
+  }
+
+  _initCanvas = () => {
+    this.myP5 = new Q5('this', this.props.canvasRef.current)
+    this.myP5.setup = this.setup
+    this.myP5.draw = this.draw
+  }
+}
+```
+
+## Execution Model
+
+b5.js follows a two-phase execution model similar to p5.js:
+
+<Steps>
+  <Step title="Setup Phase">
+    **Factory Variables** are executed once during initialization.
+    
+    ```javascript
+    _b.runSetup(p5Instance)
+    ```
+    
+    This runs all variable definitions from the Factory, setting up initial state like canvas dimensions, colors, and configuration values.
+  </Step>
+  
+  <Step title="Draw Loop">
+    **Playground Blocks** are executed repeatedly at 60 FPS (or configured frame rate).
+    
+    ```javascript
+    _b.runDraw(p5Instance)
+    ```
+    
+    This executes the main code canvas from top to bottom, left to right, every frame.
+  </Step>
+</Steps>
+
+### Execution Flow
+
+```text
+Program Start
+     │
+     ▼
+┌─────────────────┐
+│  runSetup()     │  ← Execute Factory variables once
+│  - Variable 1   │
+│  - Variable 2   │
+│  - Variable N   │
+└────────┬────────┘
+         │
+         ▼
+    ┌────────────────────┐
+    │   Draw Loop Start  │
+    └─────────┬──────────┘
+              │
+              ▼
+    ┌──────────────────┐
+    │   runDraw()      │  ← Execute Playground
+    │   - Line 0       │     60 times per second
+    │   - Line 1       │
+    │   - Line N       │
+    └─────────┬────────┘
+              │
+              └─────► Loop back (60 FPS)
+```
+
+## Block Resolution
+
+The b5.js engine resolves three types of blocks:
+
+### 1. Original Blocks
+
+Built-in blocks provided by b5.js:
+
+```json
+{
+  "name": "circle",
+  "source": "original",
+  "input": {
+    "0": ["3", "1", "0"],  // x position
+    "1": ["3", "3", "0"],  // y position  
+    "2": ["0", "1", "0"]   // diameter
+  }
+}
+```
+
+These map directly to p5.js/Q5.js functions.
+
+### 2. Custom Blocks
+
+User-defined functions and variables from the Factory:
+
+```json
+{
+  "name": "boundaries",
+  "source": "custom",
+  "input": { "0": ["0", "1", "0"] },
+  "output": {
+    "0": [["3", "1", "0"]],
+    "1": [["3", "1", "1"]],
+    "2": [["3", "3", "1"]]
+  }
+}
+```
+
+The engine executes the custom block's internal structure defined in the Factory.
+
+### 3. Library Blocks
+
+Imported from external libraries:
+
+```json
+{
+  "name": "posenet",
+  "source": "library",
+  "input": {
+    "0": ["0", "1", "0"],
+    "1": ["0", "2", "0"],
+    "2": null
+  }
+}
+```
+
+Library blocks extend b5.js with additional functionality (e.g., machine learning, physics).
+
+## Data Flow
+
+The engine manages data flow through wire connections:
+
+### Output Propagation
+
+```javascript
+// Block with outputs
+{
+  "name": "numberSlider",
+  "inlineData": [40, 0, 50, 5],
+  "output": {
+    "0": [
+      ["5", "3", "2"],  // Line 5, Block 3, Input 2
+      ["1", "2", "0"]   // Line 1, Block 2, Input 0
+    ]
+  }
+}
+```
+
+One output can feed multiple inputs across the canvas.
+
+### Input Connection
+
+```javascript
+// Block receiving input
+{
+  "name": "circle",
+  "input": {
+    "0": ["3", "1", "0"],  // From Line 3, Block 1, Output 0
+    "1": ["3", "3", "0"],  // From Line 3, Block 3, Output 0
+    "2": null              // No connection (will use default)
+  }
+}
+```
+
+Each input can receive from only one source (or remain unconnected).
+
+## State Management
+
+The b5.js engine maintains internal state for:
+
+### Variable Storage
+
+Factory variables are stored and accessible throughout execution:
+
+```javascript
+_b.unplug()  // Clear variable outputs when restarting
+```
+
+### Effect Context
+
+Effect blocks (fill, stroke, scale) modify the drawing context:
+
+```json
+{
+  "name": "fillRGBA",
+  "source": "original",
+  "input": {
+    "0": ["3", "1", "0"],  // Red value
+    "1": ["3", "3", "0"],  // Green value
+    "2": null,             // Blue (default)
+    "3": null              // Alpha (default)
+  }
+}
+```
+
+Effect blocks change the state for subsequent drawing operations based on positional rules.
+
+## Development Setup
+
+To work with b5.js in the development environment:
+
+<Steps>
+  <Step title="Clone with Submodules">
+    b5.js is included as a Git submodule:
+    
+    ```bash
+    git clone --recurse-submodules https://github.com/peilingjiang/b5.git
+    cd b5
+    ```
+  </Step>
+  
+  <Step title="Install Dependencies">
+    Install dependencies for both b5 and b5.js:
+    
+    ```bash
+    bun install
+    bun run submodule  # Installs b5.js dependencies
+    ```
+  </Step>
+  
+  <Step title="Start Development">
+    Run the development server:
+    
+    ```bash
+    bun start
+    ```
+    
+    The b5.js files are imported directly from `src/b5.js/`.
+  </Step>
+</Steps>
+
+### Build Configuration
+
+The build process excludes b5.js CSS from processing:
+
+```javascript
+// gulpfile.js
+return src([
+  './src/**/*.css',
+  '!./src/postcss/**/*.css',
+  '!./src/b5.js/**/*'  // Exclude b5.js from CSS processing
+])
+```
+
+## Future: Standalone b5.js
+
+The goal is to make b5.js available as an independent package:
+
+### Planned Usage
+
+```html
+<!-- Include b5.js in your HTML -->
+<script src="https://cdn.example.com/b5.js"></script>
+<script>
+  // Load and execute a b5 project
+  fetch('my-project.b5.json')
+    .then(response => response.json())
+    .then(project => {
+      const b5Instance = new b5()
+      b5Instance.load(project)
+      b5Instance.run()
+    })
+</script>
+```
+
+### Embedding Projects
+
+```html
+<div id="b5-container"></div>
+
+<script>
+  const b5Instance = new b5('#b5-container')
+  b5Instance.loadFromURL('https://example.com/projects/art.b5.json')
+  b5Instance.play()
+</script>
+```
+
+### API Methods (Planned)
+
+| Method | Description |
+|--------|-------------|
+| `new b5(container)` | Create a new b5 instance |
+| `load(jsonObject)` | Load a .b5.json project |
+| `loadFromURL(url)` | Load project from URL |
+| `play()` | Start execution |
+| `pause()` | Pause execution |
+| `stop()` | Stop and reset |
+| `setFrameRate(fps)` | Adjust frame rate |
+| `getState()` | Get current execution state |
+
+<Note>
+The standalone b5.js library is work-in-progress. The API is subject to change.
+</Note>
+
+## Performance Considerations
+
+### Execution Speed
+
+b5.js executes blocks sequentially:
+- **Line by line**: Top to bottom
+- **Block by block**: Left to right within each line
+- **60 FPS**: Default frame rate (configurable)
+
+### Optimization Tips
+
+1. **Minimize Draw Calls**: Use fewer shape blocks when possible
+2. **Simplify Connections**: Reduce wire complexity for faster data flow
+3. **Batch Similar Operations**: Group related blocks together
+4. **Use Variables**: Store expensive calculations in Factory variables
+
+## Renderer Compatibility
+
+b5.js currently supports two rendering backends:
+
+### Q5.js (Default)
+
+```javascript
+import Q5 from '../../q5xjs/q5.js'
+
+this.myP5 = new Q5('this', containerElement)
+```
+
+**Advantages**:
+- Lightweight and fast
+- Better performance for simple graphics
+- Smaller bundle size
+
+### p5.js (Alternative)
+
+```javascript
+import p5 from 'p5'
+
+this.myP5 = new p5(sketch, containerElement)
+```
+
+**Advantages**:
+- Full p5.js compatibility
+- Access to all p5.js libraries
+- More extensive feature set
+
+<Note>
+The current production version uses Q5.js for better performance. p5.js support is available for compatibility when needed.
+</Note>
+
+## Error Handling
+
+The b5.js engine provides basic error handling:
+
+```javascript
+if (_b.runSetup) {
+  _b.runSetup(this.myP5)
+} else {
+  this.loop = false  // Stop execution if setup fails
+}
+```
+
+Future versions will include:
+- Block-level error detection
+- Visual error indicators
+- Error recovery mechanisms
+- Debugging tools
+
+## Contributing to b5.js
+
+b5.js is open source and welcomes contributions:
+
+1. **Block Definitions**: Add new block types
+2. **Optimization**: Improve execution speed
+3. **Features**: Implement new capabilities
+4. **Bug Fixes**: Resolve issues in block execution
+5. **Documentation**: Help document the rendering engine
+
+Visit the [b5.js GitHub repository](https://github.com/peilingjiang/b5.js) to contribute.
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="b5.js Repository" icon="github" href="https://github.com/peilingjiang/b5.js">
+    View the source code and contribute to b5.js
+  </Card>
+  
+  <Card title="Q5.js Documentation" icon="book" href="https://q5js.org">
+    Learn about the rendering library powering b5
+  </Card>
+  
+  <Card title="p5.js Reference" icon="palette" href="https://p5js.org/reference">
+    Explore p5.js functions that inspire b5 blocks
+  </Card>
+  
+  <Card title="Save & Load Projects" icon="floppy-disk" href="/advanced/save-load">
+    Understand the .b5.json format b5.js executes
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Custom Functions" icon="function" href="/advanced/custom-functions">
+    Create functions that b5.js will execute
+  </Card>
+  
+  <Card title="Custom Variables" icon="variable" href="/advanced/custom-variables">
+    Define variables processed by the b5.js engine
+  </Card>
+</CardGroup>
